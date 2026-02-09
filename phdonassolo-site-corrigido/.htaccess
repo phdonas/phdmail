@@ -1,0 +1,97 @@
+
+RewriteOptions inherit
+# ============================================
+# PHDONASSOLO.COM - CONFIGURAÇÃO PRODUÇÃO
+# Site React + WordPress Headless
+# ============================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 1. PROTEÇÃO: Não permitir acesso a arquivos sensíveis
+    RewriteRule ^\.env - [F,L]
+    RewriteRule ^\.git - [F,L]
+
+    # 2. WORDPRESS: Preservar acesso à API REST (CRÍTICO!)
+    RewriteRule ^wordpress/ - [L,NC]
+    
+    # 3. REDIRECTS /go: Deixar passar para cPanel processar (NOVO!)
+    # Esta regra DEVE vir ANTES do SPA routing
+    # RewriteRule ^go/ - [L]
+
+    # 3. ASSETS ESTÁTICOS: Servir diretamente sem rewrite
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 4. SPA ROUTING: Todo o resto vai para index.html
+    RewriteCond %{REQUEST_URI} !^/go/ [NC]
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# ============================================
+# CACHE E PERFORMANCE
+# ============================================
+<IfModule mod_headers.c>
+    # Cache agressivo para assets com hash (1 ano)
+    <FilesMatch "\.(js|css|woff|woff2|ttf|svg|jpg|jpeg|png|gif|ico|webp)$">
+        Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+    
+    # HTML sem cache (para atualizações imediatas)
+    <FilesMatch "\.(html)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+# ============================================
+# SEGURANÇA
+# ============================================
+<IfModule mod_headers.c>
+    # Proteção contra clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Proteção XSS
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Prevenir MIME type sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Referrer policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ============================================
+# COMPRESSÃO GZIP
+# ============================================
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# ============================================
+# MIME TYPES
+# ============================================
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+    AddType text/css .css
+    AddType image/svg+xml .svg
+    AddType font/woff .woff
+    AddType font/woff2 .woff2
+</IfModule>
+RewriteCond %{HTTP_HOST} ^.*$
+RewriteRule ^go\/dre$ "https\:\/\/www\.udemy\.com\/course\/descomplicando\-o\-dre\/\?referralCode\=EA71F9A22E8CEA6214C4" [R=302,L]
+RewriteCond %{HTTP_HOST} ^.*$
+RewriteRule ^go\/fluxo$ "https\:\/\/www\.udemy\.com\/course\/descomplicando\-o\-fluxo\-de\-caixa\/\?referralCode\=96D93BB86AF6EA061850" [R=302,L]
+RewriteCond %{HTTP_HOST} ^.*$
+RewriteRule ^go\/escuta$ "https\:\/\/www\.udemy\.com\/course\/escuta\-ativa\-e\-negociacao\-como\-vender\-melhor\-ouvindo\-mais\/\?referralCode\=1904477ABD0D6FAF16D3" [R=302,L]
+RewriteCond %{HTTP_HOST} ^.*$
+RewriteRule ^go\/negociacao$ "https\:\/\/www\.udemy\.com\/course\/negociacao\-para\-vendas\-tecnicas\-ia\-professor\/\?referralCode\=D579CCC953FC425B1F87" [R=302,L]
+RewriteCond %{HTTP_HOST} ^.*$
+RewriteRule ^go\/jbp$ "https\:\/\/www\.udemy\.com\/course\/jbp\-na\-pratica\-para\-transformar\-suas\-vendas\/\?referralCode\=9819EA309FBC7C08360E" [R=302,L]
+RewriteCond %{HTTP_HOST} ^.*$
+RewriteRule ^go\/esspreco$ "https\:\/\/www\.udemy\.com\/course\/o\-essencial\-sobre\-o\-calculo\-do\-preco\-de\-venda\-do\-gas\/\?referralCode\=76547760C1D22D27D6DB" [R=302,L]
+RewriteCond %{HTTP_HOST} ^.*$
+RewriteRule ^go\/essentrega$ "https\:\/\/www\.udemy\.com\/course\/o\-essencial\-sobre\-o\-calculo\-do\-custo\-de\-entrega\-de\-gas\/\?referralCode\=C7E4C36C27FE3E7D3DCF" [R=302,L]
