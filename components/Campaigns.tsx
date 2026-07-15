@@ -36,15 +36,20 @@ const Campaigns: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFilterBar, setShowFilterBar] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'sent' | 'sending' | 'queued' | 'draft'>('all');
+  const [debugLog, setDebugLog] = useState<string>("Iniciando...");
 
   useEffect(() => {
     const loadCampaigns = async () => {
       try {
+        setDebugLog("Chamando getCampaigns()...");
         const data = await getCampaigns();
         setCampaigns(data);
+        setDebugLog(`Sucesso: ${data.length} campanhas carregadas às ${new Date().toLocaleTimeString()}`);
       } catch (error) {
         console.error("Failed to fetch campaigns", error);
-        alert("Erro ao carregar lista de campanhas: " + (error instanceof Error ? error.message : String(error)));
+        const errMsg = error instanceof Error ? error.message : String(error);
+        setDebugLog(`Erro: ${errMsg} às ${new Date().toLocaleTimeString()}`);
+        alert("Erro ao carregar lista de campanhas: " + errMsg);
       }
     };
 
@@ -363,6 +368,30 @@ const Campaigns: React.FC = () => {
             <button className="px-3 py-1 border border-slate-200 dark:border-slate-800 rounded bg-white dark:bg-slate-900 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">Próximo</button>
           </div>
         </div>
+      </div>
+
+      {/* Visual Debug Panel */}
+      <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-4 mt-6 text-xs font-mono text-amber-800 dark:text-amber-300">
+        <p className="font-bold mb-1">Painel de Diagnóstico Técnico:</p>
+        <p>Log: {debugLog}</p>
+        <p>Projeto Firebase: {import.meta.env.VITE_FIREBASE_PROJECT_ID || 'Não definido'}</p>
+        <p>URL da API: {import.meta.env.VITE_API_URL || 'Não definida'}</p>
+        <p>Qtd. Campanhas no Estado React: {campaigns.length}</p>
+        <button 
+          onClick={async () => {
+            setDebugLog("Recarregamento forçado acionado...");
+            try {
+              const data = await getCampaigns();
+              setCampaigns(data);
+              setDebugLog(`Forçado com sucesso: ${data.length} campanhas às ${new Date().toLocaleTimeString()}`);
+            } catch (err) {
+              setDebugLog(`Erro no forçado: ${err instanceof Error ? err.message : String(err)} às ${new Date().toLocaleTimeString()}`);
+            }
+          }}
+          className="mt-2 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold uppercase tracking-wider transition-colors"
+        >
+          Forçar Consulta Firestore
+        </button>
       </div>
     </div>
   );
