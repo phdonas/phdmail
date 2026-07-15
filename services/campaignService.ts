@@ -71,7 +71,14 @@ export const updateCampaign = async (campaign: Campaign) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, ...data } = campaign;
   const dataToSave = cleanData(data);
-  await setDoc(docRef, dataToSave, { merge: true });
+  
+  // Wrap setDoc in a Promise.race with an 8-second timeout to prevent silent hanging
+  const writePromise = setDoc(docRef, dataToSave, { merge: true });
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error("Tempo limite excedido ao salvar dados no Firestore (Timeout de 8s). Isso pode ser causado por bloqueadores de conteúdo/AdBlockers ou instabilidade na conexão.")), 8000)
+  );
+
+  await Promise.race([writePromise, timeoutPromise]);
 };
 
 export const deleteCampaign = async (id: string) => {
