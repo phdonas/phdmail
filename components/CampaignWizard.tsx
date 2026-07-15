@@ -4,7 +4,7 @@ import {
   ChevronRight, ChevronLeft, Sparkles, Wand2, Send, Save, Eye, Loader2,
   Info, Upload, CheckCircle2, AlertTriangle, Edit3, Image as ImageIcon,
   Link as LinkIcon, Facebook, Instagram, Linkedin, Twitter, Youtube, Plus, Trash2, Check, ShieldAlert,
-  Laptop, Smartphone, Calendar, AlertCircle, Users, Mail
+  Laptop, Smartphone, Calendar, AlertCircle, Users, Mail, ArrowUp, ArrowDown, Settings, Video
 } from 'lucide-react';
 import { 
   generateEmailContent, 
@@ -17,10 +17,232 @@ import {
 } from '../services/geminiService';
 import { getCampaignById, updateCampaign } from '../services/campaignService';
 import { getContacts } from '../services/contactService';
-import { Campaign, SocialLink, Contact } from '../types';
+import { getLinks, createLink, deleteLink } from '../services/linkService';
+import { Campaign, SocialLink, Contact, LinkItem, EmailSection, EmailBlock, EmailBlockType } from '../types';
 import { useTheme } from '../App';
 
 type Step = 'details' | 'content' | 'audience' | 'review';
+
+const PHD_TEMPLATES: Record<string, {
+  name: string;
+  description: string;
+  bgColor: string;
+  containerBgColor: string;
+  textColor: string;
+  fontFamily: string;
+  sections: EmailSection[];
+}> = {
+  consultoria: {
+    name: 'Consultoria em Gestão',
+    description: 'Visual editorial premium (fundo creme, títulos em bronze/ouro, fontes serifadas).',
+    bgColor: '#F3EFE6',
+    containerBgColor: '#FDFBF7',
+    textColor: '#17130E',
+    fontFamily: '"Cormorant Garamond", Georgia, serif',
+    sections: [
+      {
+        id: 'c1',
+        bgColor: '#F3EFE6',
+        textColor: '#17130E',
+        padding: 'medium',
+        blocks: [
+          {
+            id: 'c1-b1',
+            type: 'text',
+            content: `<h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 32px; color: #A87828; font-weight: bold; margin-bottom: 10px; margin-top: 0;">Consultoria em Gestão</h1><p style="font-family: 'DM Sans', sans-serif; font-size: 16px; color: #3A3025; line-height: 1.7;">A evolução da liderança e a otimização de processos executivos na prática.</p>`
+          }
+        ]
+      },
+      {
+        id: 'c2',
+        bgColor: '#FDFBF7',
+        textColor: '#17130E',
+        padding: 'large',
+        blocks: [
+          {
+            id: 'c2-b1',
+            type: 'text',
+            content: `<h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; color: #17130E; font-weight: bold; margin-bottom: 15px; margin-top: 0;">Os 3 Pilares da Gestão Eficiente</h2><p style="font-family: 'DM Sans', sans-serif; font-size: 15px; color: #3A3025; line-height: 1.6; margin-bottom: 20px;">Para impulsionar a lucratividade e o alinhamento estratégico, focamos em processos enxutos, pessoas capacitadas e tecnologia adequada.</p>`
+          },
+          {
+            id: 'c2-b2',
+            type: 'video',
+            videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+          }
+        ]
+      },
+      {
+        id: 'c3',
+        bgColor: '#F3EFE6',
+        textColor: '#17130E',
+        padding: 'medium',
+        blocks: [
+          {
+            id: 'c3-b1',
+            type: 'cta',
+            ctaText: 'Conhecer Mentoria de Gestão',
+            ctaUrl: 'https://www.phdonassolo.com/mentoria',
+            ctaAlign: 'center',
+            ctaBgColor: '#A87828',
+            ctaTextColor: '#FDFBF7'
+          }
+        ]
+      }
+    ]
+  },
+  curso: {
+    name: 'Curso Online / Lançamento',
+    description: 'Fundo escuro (Navy), botões chamativos em Gold, foco em conversão e escassez.',
+    bgColor: '#0C1824',
+    containerBgColor: '#122030',
+    textColor: '#FDFBF7',
+    fontFamily: '"DM Sans", sans-serif',
+    sections: [
+      {
+        id: 'l1',
+        bgColor: '#0C1824',
+        textColor: '#FDFBF7',
+        padding: 'medium',
+        blocks: [
+          {
+            id: 'l1-b1',
+            type: 'text',
+            content: `<h1 style="font-size: 30px; color: #EDE0C0; font-weight: bold; text-align: center; margin-bottom: 10px; margin-top: 0;">CURSO DE GESTÃO ESTRATÉGICA</h1><p style="font-size: 15px; color: #FDFBF7; text-align: center; opacity: 0.9; margin-bottom: 0;">Inscrições abertas por tempo limitado!</p>`
+          }
+        ]
+      },
+      {
+        id: 'l2',
+        bgColor: '#122030',
+        textColor: '#FDFBF7',
+        padding: 'large',
+        blocks: [
+          {
+            id: 'l2-b1',
+            type: 'text',
+            content: `<p style="font-size: 16px; line-height: 1.7; margin-bottom: 15px; margin-top: 0;">Desenvolva as habilidades de liderança e gestão financeira que as empresas de sucesso exigem.</p><p style="font-size: 16px; line-height: 1.7; margin-bottom: 20px;">Assista à apresentação completa do Prof. Paulo Donassolo no vídeo abaixo:</p>`
+          },
+          {
+            id: 'l2-b2',
+            type: 'video',
+            videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+          }
+        ]
+      },
+      {
+        id: 'l3',
+        bgColor: '#0C1824',
+        textColor: '#FDFBF7',
+        padding: 'medium',
+        blocks: [
+          {
+            id: 'l3-b1',
+            type: 'cta',
+            ctaText: 'Garantir Minha Vaga com Desconto',
+            ctaUrl: 'https://www.phdonassolo.com/cursos',
+            ctaAlign: 'center',
+            ctaBgColor: '#C8983C',
+            ctaTextColor: '#0C1824'
+          }
+        ]
+      }
+    ]
+  },
+  mentoria: {
+    name: 'Mentoria Executiva',
+    description: 'Layout focado em pilares, com botão de agendamento integrado e visual creme premium.',
+    bgColor: '#FDFBF7',
+    containerBgColor: '#FDFBF7',
+    textColor: '#17130E',
+    fontFamily: '"Cormorant Garamond", Georgia, serif',
+    sections: [
+      {
+        id: 'm1',
+        bgColor: '#FDFBF7',
+        textColor: '#17130E',
+        padding: 'medium',
+        blocks: [
+          {
+            id: 'm1-b1',
+            type: 'text',
+            content: `<h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 30px; color: #A87828; font-weight: bold; text-align: center; margin-bottom: 10px; margin-top: 0;">Mentoria Executiva Individual</h1><p style="font-family: 'DM Sans', sans-serif; font-size: 15px; color: #6B5E50; text-align: center; margin-bottom: 0;">Acelere sua carreira executiva com acompanhamento estratégico personalizado.</p>`
+          }
+        ]
+      },
+      {
+        id: 'm2',
+        bgColor: '#F3EFE6',
+        textColor: '#17130E',
+        padding: 'large',
+        blocks: [
+          {
+            id: 'm2-b1',
+            type: 'text',
+            content: `<h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; color: #17130E; font-weight: bold; margin-bottom: 15px; margin-top: 0;">Como funciona a mentoria?</h2><p style="font-family: 'DM Sans', sans-serif; font-size: 15px; color: #3A3025; line-height: 1.6; margin-bottom: 15px;">Sessões quinzenais focadas em resolver os desafios reais da sua organização, desenhando um plano de crescimento estruturado.</p>`
+          },
+          {
+            id: 'm2-b2',
+            type: 'cta',
+            ctaText: 'Agendar Conversa de Diagnóstico',
+            ctaUrl: 'https://www.phdonassolo.com/falecomigo',
+            ctaAlign: 'left',
+            ctaBgColor: '#17130E',
+            ctaTextColor: '#FDFBF7'
+          }
+        ]
+      }
+    ]
+  },
+  newsletter: {
+    name: 'Dicas de Gestão (Newsletter)',
+    description: 'Layout minimalista e limpo para leitura fluida, com separadores discretos.',
+    bgColor: '#f9fafb',
+    containerBgColor: '#ffffff',
+    textColor: '#334155',
+    fontFamily: '"DM Sans", sans-serif',
+    sections: [
+      {
+        id: 'n1',
+        bgColor: '#ffffff',
+        textColor: '#334155',
+        padding: 'medium',
+        blocks: [
+          {
+            id: 'n1-b1',
+            type: 'text',
+            content: `<p style="font-size: 12px; font-weight: bold; color: #A87828; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; margin-top: 0;">Edição Semanal #42</p><h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; color: #17130E; font-weight: bold; margin-bottom: 15px; margin-top: 0;">3 Dicas Rápidas para Reduzir Reuniões Inúteis</h1><p style="font-size: 15px; line-height: 1.7; color: #334155; margin-bottom: 0;">Reuniões improdutivas custam caro para a empresa e drenam a energia dos colaboradores. Aqui estão 3 práticas imediatas para resgatar a produtividade da sua equipe:</p>`
+          }
+        ]
+      },
+      {
+        id: 'n2',
+        bgColor: '#f9fafb',
+        textColor: '#334155',
+        padding: 'medium',
+        blocks: [
+          {
+            id: 'n2-b1',
+            type: 'text',
+            content: `<p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 12px; margin-top: 0;"><b>1. Regra dos 15 minutos:</b> Tente agendar reuniões de 15 minutos em vez de 30, forçando objetividade.</p><p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 12px;"><b>2. Pauta Antecipada:</b> Nenhuma reunião deve acontecer sem uma pauta escrita enviada com 24h de antecedência.</p><p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 0;"><b>3. Decisão Clara:</b> Toda reunião deve terminar com uma lista explícita de próximos passos e responsáveis.</p>`
+          }
+        ]
+      },
+      {
+        id: 'n3',
+        bgColor: '#ffffff',
+        textColor: '#334155',
+        padding: 'medium',
+        blocks: [
+          {
+            id: 'n3-b1',
+            type: 'text',
+            content: `<p style="font-size: 14px; color: #64748b; font-style: italic; margin-bottom: 0; margin-top: 0;">O que achou das dicas de hoje? Responda a este e-mail compartilhando sua experiência!</p>`
+          }
+        ]
+      }
+    ]
+  }
+};
 
 const CampaignWizard: React.FC = () => {
   const { theme } = useTheme();
@@ -63,6 +285,13 @@ const CampaignWizard: React.FC = () => {
   const [testEmail, setTestEmail] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
 
+  // Link Library States
+  const [savedLinks, setSavedLinks] = useState<LinkItem[]>([]);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [newLinkName, setNewLinkName] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [activeLinkField, setActiveLinkField] = useState<{ sectionId?: string; blockId?: string; field: string } | null>(null);
+
   const [formData, setFormData] = useState({
     id: id || Math.random().toString(36).substr(2, 9),
     name: '',
@@ -78,6 +307,14 @@ const CampaignWizard: React.FC = () => {
     ctaText: '',
     ctaUrl: '',
     socialLinks: [] as SocialLink[],
+
+    // Layout configuration
+    editorMode: 'classic' as 'classic' | 'visual',
+    sections: [] as EmailSection[],
+    bgColor: '#f9fafb',
+    containerBgColor: '#ffffff',
+    textColor: '#334155',
+    fontFamily: 'Helvetica, Arial, sans-serif',
 
     // Footer State
     footerText: '',
@@ -110,6 +347,14 @@ const CampaignWizard: React.FC = () => {
             ctaUrl: existing.ctaUrl || '',
             socialLinks: existing.socialLinks || [],
 
+            // Layout load
+            editorMode: (existing as any).editorMode || 'classic',
+            sections: (existing as any).sections || [],
+            bgColor: (existing as any).bgColor || '#f9fafb',
+            containerBgColor: (existing as any).containerBgColor || '#ffffff',
+            textColor: (existing as any).textColor || '#334155',
+            fontFamily: (existing as any).fontFamily || 'Helvetica, Arial, sans-serif',
+
             // Footer Load
             footerText: existing.footerText || '',
             footerLinkText: existing.footerLinkText || '',
@@ -134,6 +379,18 @@ const CampaignWizard: React.FC = () => {
     };
     loadCampaign();
   }, [id]);
+
+  useEffect(() => {
+    const loadLinks = async () => {
+      try {
+        const linksList = await getLinks();
+        setSavedLinks(linksList);
+      } catch (err) {
+        console.error("Erro ao carregar links salvos:", err);
+      }
+    };
+    loadLinks();
+  }, []);
 
   useEffect(() => {
     const fetchDbContacts = async () => {
@@ -179,6 +436,292 @@ const CampaignWizard: React.FC = () => {
     if (!url) return '';
     const match = url.match(/(https?:\/\/[^\s]+)/);
     return match ? match[0] : url;
+  };
+
+  // Select a preset template
+  const handleSelectTemplate = (templateKey: string) => {
+    const template = PHD_TEMPLATES[templateKey];
+    if (!template) return;
+    
+    // Deep clone sections to avoid referencing the same object in state
+    const clonedSections = JSON.parse(JSON.stringify(template.sections)) as EmailSection[];
+    
+    setFormData(prev => ({
+      ...prev,
+      bgColor: template.bgColor,
+      containerBgColor: template.containerBgColor,
+      textColor: template.textColor,
+      fontFamily: template.fontFamily,
+      sections: clonedSections,
+      editorMode: 'visual'
+    }));
+  };
+
+  // Add a new section
+  const handleAddSection = () => {
+    const newSection: EmailSection = {
+      id: Math.random().toString(36).substr(2, 9),
+      bgColor: '#ffffff',
+      textColor: '#334155',
+      padding: 'medium',
+      blocks: []
+    };
+    setFormData(prev => ({
+      ...prev,
+      sections: [...prev.sections, newSection]
+    }));
+  };
+
+  // Remove section
+  const handleRemoveSection = (sectionId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.filter(s => s.id !== sectionId)
+    }));
+  };
+
+  // Move section
+  const handleMoveSection = (sectionId: string, direction: 'up' | 'down') => {
+    const index = formData.sections.findIndex(s => s.id === sectionId);
+    if (index === -1) return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === formData.sections.length - 1) return;
+    
+    const newSections = [...formData.sections];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const temp = newSections[index];
+    newSections[index] = newSections[targetIndex];
+    newSections[targetIndex] = temp;
+    
+    setFormData(prev => ({ ...prev, sections: newSections }));
+  };
+
+  // Add block to section
+  const handleAddBlock = (sectionId: string, type: EmailBlockType) => {
+    const newBlock: EmailBlock = {
+      id: Math.random().toString(36).substr(2, 9),
+      type,
+      content: type === 'text' ? '<p>Escreva seu texto aqui...</p>' : '',
+      videoUrl: type === 'video' ? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' : '',
+      imageUrl: type === 'image' ? 'https://via.placeholder.com/600x300?text=Imagem+PhD' : '',
+      ctaText: type === 'cta' ? 'Clique Aqui' : '',
+      ctaUrl: type === 'cta' ? 'https://www.phdonassolo.com' : '',
+      ctaAlign: 'center',
+      ctaBgColor: '#A87828',
+      ctaTextColor: '#FDFBF7',
+      spacing: type === 'divider' ? 20 : undefined
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(s => {
+        if (s.id !== sectionId) return s;
+        return {
+          ...s,
+          blocks: [...s.blocks, newBlock]
+        };
+      })
+    }));
+  };
+
+  // Remove block
+  const handleRemoveBlock = (sectionId: string, blockId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(s => {
+        if (s.id !== sectionId) return s;
+        return {
+          ...s,
+          blocks: s.blocks.filter(b => b.id !== blockId)
+        };
+      })
+    }));
+  };
+
+  // Move block within section
+  const handleMoveBlock = (sectionId: string, blockId: string, direction: 'up' | 'down') => {
+    const section = formData.sections.find(s => s.id === sectionId);
+    if (!section) return;
+    const index = section.blocks.findIndex(b => b.id === blockId);
+    if (index === -1) return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === section.blocks.length - 1) return;
+    
+    const newBlocks = [...section.blocks];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const temp = newBlocks[index];
+    newBlocks[index] = newBlocks[targetIndex];
+    newBlocks[targetIndex] = temp;
+    
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(s => {
+        if (s.id !== sectionId) return s;
+        return { ...s, blocks: newBlocks };
+      })
+    }));
+  };
+
+  // Update block fields
+  const handleUpdateBlock = (sectionId: string, blockId: string, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(s => {
+        if (s.id !== sectionId) return s;
+        return {
+          ...s,
+          blocks: s.blocks.map(b => {
+            if (b.id !== blockId) return b;
+            return { ...b, [field]: value };
+          })
+        };
+      })
+    }));
+  };
+
+  // Update section fields
+  const handleUpdateSection = (sectionId: string, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(s => {
+        if (s.id !== sectionId) return s;
+        return { ...s, [field]: value };
+      })
+    }));
+  };
+
+  // Save new link in Library
+  const handleCreateSavedLink = async () => {
+    if (!newLinkName || !newLinkUrl) return;
+    try {
+      const created = await createLink({ name: newLinkName, url: newLinkUrl });
+      setSavedLinks(prev => [...prev, created]);
+      setNewLinkName('');
+      setNewLinkUrl('');
+    } catch (err) {
+      console.error("Erro ao criar link rápido:", err);
+    }
+  };
+
+  // Delete saved link from Library
+  const handleDeleteSavedLink = async (linkId: string) => {
+    try {
+      await deleteLink(linkId);
+      setSavedLinks(prev => prev.filter(l => l.id !== linkId));
+    } catch (err) {
+      console.error("Erro ao excluir link rápido:", err);
+    }
+  };
+
+  // Open Link Picker
+  const handleOpenLinkPicker = (sectionId?: string, blockId?: string, field: string = 'ctaUrl') => {
+    setActiveLinkField({ sectionId, blockId, field });
+    setShowLinkModal(true);
+  };
+
+  // Select link from picker
+  const handleSelectLink = (url: string) => {
+    if (!activeLinkField) return;
+    
+    const { sectionId, blockId, field } = activeLinkField;
+    
+    if (sectionId && blockId) {
+      // It's a block field (like ctaUrl or imageLink)
+      handleUpdateBlock(sectionId, blockId, field, url);
+    } else {
+      // It's a general field on formData
+      setFormData(prev => ({ ...prev, [field]: url }));
+    }
+    
+    setShowLinkModal(false);
+    setActiveLinkField(null);
+  };
+
+  // Compile Visual Sections to responsive HTML table structure
+  const compileSectionsToHtml = (sections: EmailSection[]): string => {
+    if (!sections || sections.length === 0) return '';
+    
+    let html = '';
+    sections.forEach(section => {
+      const pad = section.padding === 'small' ? '12px 24px' : section.padding === 'large' ? '40px 48px' : '24px 32px';
+      
+      html += `<!-- SECTION START -->\n`;
+      html += `<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: ${section.bgColor}; color: ${section.textColor}; margin: 0; padding: 0;">\n`;
+      html += `  <tr>\n`;
+      html += `    <td style="padding: ${pad};">\n`;
+      
+      section.blocks.forEach(block => {
+        if (block.type === 'text' && block.content) {
+          html += `      <div style="margin-bottom: 20px; font-family: inherit; line-height: 1.7; color: ${section.textColor};">${block.content}</div>\n`;
+        } 
+        else if (block.type === 'video' && block.videoUrl) {
+          // Extract YouTube ID
+          const ytReg = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+          const match = block.videoUrl.match(ytReg);
+          const ytId = match ? match[1] : '';
+          const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/600x338?text=Video+no+YouTube';
+          
+          html += `      <div style="margin-top: 15px; margin-bottom: 25px; text-align: center;">\n`;
+          html += `        <a href="${block.videoUrl}" target="_blank" style="text-decoration: none; display: inline-block; position: relative; max-width: 100%;">\n`;
+          html += `          <table border="0" cellpadding="0" cellspacing="0" align="center" style="background-image: url('${thumbUrl}'); background-size: cover; background-position: center; width: 500px; max-width: 100%; height: 281px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">\n`;
+          html += `            <tr>\n`;
+          html += `              <td align="center" valign="middle" style="background-color: rgba(0,0,0,0.3); height: 281px;">\n`;
+          html += `                <table border="0" cellpadding="0" cellspacing="0" style="background-color: #A87828; border-radius: 50%; width: 68px; height: 68px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">\n`;
+          html += `                  <tr>\n`;
+          html += `                    <td align="center" valign="middle" style="height: 68px; padding-left: 5px;">\n`;
+          html += `                      <div style="width: 0; height: 0; border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 20px solid #FFFFFF;"></div>\n`;
+          html += `                    </td>\n`;
+          html += `                  </tr>\n`;
+          html += `                </table>\n`;
+          html += `              </td>\n`;
+          html += `            </tr>\n`;
+          html += `          </table>\n`;
+          html += `        </a>\n`;
+          html += `      </div>\n`;
+        } 
+        else if (block.type === 'image' && block.imageUrl) {
+          const imgTag = `<img src="${block.imageUrl}" alt="Imagem" style="width: 100%; max-width: 500px; height: auto; border-radius: 8px; border: 0; display: block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" />`;
+          
+          html += `      <div style="margin-top: 15px; margin-bottom: 20px; text-align: center;">\n`;
+          if (block.imageLink) {
+            html += `        <a href="${block.imageLink}" target="_blank">${imgTag}</a>\n`;
+          } else {
+            html += `        ${imgTag}\n`;
+          }
+          html += `      </div>\n`;
+        } 
+        else if (block.type === 'cta' && block.ctaText && block.ctaUrl) {
+          const align = block.ctaAlign || 'center';
+          const bg = block.ctaBgColor || '#A87828';
+          const textColors = block.ctaTextColor || '#FDFBF7';
+          
+          html += `      <div style="text-align: ${align}; margin-top: 25px; margin-bottom: 25px;">\n`;
+          html += `        <table border="0" cellspacing="0" cellpadding="0" style="display: inline-block;">\n`;
+          html += `          <tr>\n`;
+          html += `            <td align="center" bgcolor="${bg}" style="border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.12);">\n`;
+          html += `              <a href="${block.ctaUrl}" target="_blank" style="font-size: 15px; font-family: inherit; color: ${textColors}; text-decoration: none; padding: 12px 28px; border-radius: 8px; display: inline-block; font-weight: bold; border: 1px solid ${bg};">${block.ctaText}</a>\n`;
+          html += `            </td>\n`;
+          html += `          </tr>\n`;
+          html += `        </table>\n`;
+          html += `      </div>\n`;
+        }
+        else if (block.type === 'divider') {
+          const h = block.spacing || 20;
+          html += `      <table border="0" cellpadding="0" cellspacing="0" width="100%">\n`;
+          html += `        <tr>\n`;
+          html += `          <td style="padding: ${h / 2}px 0; border-top: 1px solid rgba(0,0,0,0.06);"></td>\n`;
+          html += `        </tr>\n`;
+          html += `      </table>\n`;
+        }
+      });
+      
+      html += `    </td>\n`;
+      html += `  </tr>\n`;
+      html += `</table>\n`;
+      html += `<!-- SECTION END -->\n`;
+    });
+    
+    return html;
   };
 
   // Initialize editor content when step changes to 'content'
@@ -311,11 +854,16 @@ const CampaignWizard: React.FC = () => {
   };
 
   const persistCampaign = async (status: 'draft' | 'sent' | 'queued' | 'scheduled') => {
+    let compiledContent = formData.content;
+    if (formData.editorMode === 'visual') {
+      compiledContent = compileSectionsToHtml(formData.sections);
+    }
+
     const campaign: Campaign = {
       id: formData.id,
       name: formData.name || 'Sem nome',
       subject: formData.subject,
-      content: formData.content,
+      content: compiledContent,
       status: status,
       sentAt: status === 'sent' ? new Date().toLocaleString('pt-BR') : undefined,
       scheduledFor: scheduleType === 'scheduled' && scheduleDateTime ? new Date(scheduleDateTime).toISOString() : undefined,
@@ -339,6 +887,15 @@ const CampaignWizard: React.FC = () => {
       footerImageUrl: formData.footerImageUrl,
       footerImageLink: formData.footerImageLink
     };
+
+    // Store visual builder specific parameters
+    (campaign as any).editorMode = formData.editorMode;
+    (campaign as any).sections = formData.sections;
+    (campaign as any).bgColor = formData.bgColor;
+    (campaign as any).containerBgColor = formData.containerBgColor;
+    (campaign as any).textColor = formData.textColor;
+    (campaign as any).fontFamily = formData.fontFamily;
+
     await updateCampaign(campaign);
   };
 
@@ -750,12 +1307,11 @@ const CampaignWizard: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* Inputs & Editor Column */}
+                {/* Subject Line */}
                 <div className="lg:col-span-7 space-y-6">
-                  {/* Subject Line */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Linha de Assunto</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-350">Linha de Assunto</label>
                       <button
                         type="button"
                         onClick={handleSubjectSuggestions}
@@ -793,221 +1349,609 @@ const CampaignWizard: React.FC = () => {
                     )}
                   </div>
 
-                  {/* HTML Editor */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mensagem (Corpo do E-mail)</label>
-                    <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 bg-white dark:bg-slate-900">
-                      <div className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 p-2 flex gap-1 flex-wrap items-center">
-                        <button type="button" onClick={() => handleFormat('bold')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 font-bold" title="Negrito">B</button>
-                        <button type="button" onClick={() => handleFormat('italic')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 italic" title="Itálico">I</button>
-                        <button type="button" onClick={() => handleFormat('underline')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 underline" title="Sublinhado">U</button>
-                        <div className="w-px h-4 bg-slate-300 dark:bg-slate-750 mx-1"></div>
-                        <select onChange={(e) => handleFormat('fontName', e.target.value)} className="text-xs border border-slate-200 dark:border-slate-800 rounded p-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
-                          <option value="Arial">Arial</option>
-                          <option value="Courier New">Courier</option>
-                          <option value="Georgia">Georgia</option>
-                          <option value="Times New Roman">Times</option>
-                          <option value="Verdana">Verdana</option>
-                        </select>
-                      </div>
-                      <div
-                        ref={editorRef}
-                        contentEditable
-                        suppressContentEditableWarning={true}
-                        className="w-full p-4 min-h-[280px] outline-none prose prose-sm max-w-none dark:prose-invert"
-                        onInput={(e) => setFormData({ ...formData, content: e.currentTarget.innerHTML })}
-                        onBlur={(e) => setFormData({ ...formData, content: e.currentTarget.innerHTML })}
-                        style={{ fontFamily: 'Arial, sans-serif' }}
-                      />
+                  {/* Galeria de Templates PhD */}
+                  <div className="bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border dark:border-slate-800 space-y-3">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Templates Rápidos baseados em phdonassolo.com</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {Object.entries(PHD_TEMPLATES).map(([key, template]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => handleSelectTemplate(key)}
+                          className="p-3 text-left bg-white dark:bg-slate-900 border dark:border-slate-800 hover:border-brand-500 hover:ring-2 hover:ring-brand-500/10 rounded-xl transition-all flex flex-col justify-between group"
+                        >
+                          <span className="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400">{template.name}</span>
+                          <span className="text-[9px] text-slate-450 mt-1 line-clamp-2">{template.description}</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Layout Elements Container */}
-                  <div className="bg-slate-50 dark:bg-slate-950/40 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/80 space-y-4">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 border-b dark:border-slate-800 pb-2">
-                      <ImageIcon size={18} className="text-brand-500" />
-                      Mídia e Call-to-Action (Botão)
-                    </h3>
+                  {/* Editor Mode Selector */}
+                  <div className="flex bg-slate-100 dark:bg-slate-950 p-1.5 rounded-xl border dark:border-slate-800/80">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, editorMode: 'classic' })}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                        formData.editorMode === 'classic'
+                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-750 dark:hover:text-slate-355'
+                      }`}
+                    >
+                      Editor Clássico (HTML)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, editorMode: 'visual' })}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                        formData.editorMode === 'visual'
+                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-750 dark:hover:text-slate-355'
+                      }`}
+                    >
+                      Construtor Visual (Seções)
+                    </button>
+                  </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* -------------------- CLASSIC MODE EDITOR -------------------- */}
+                  {formData.editorMode === 'classic' && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">Banner Principal (URL)</label>
-                        <input
-                          type="url"
-                          placeholder="https://imagem.com/banner.jpg"
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                          value={formData.imageUrl}
-                          onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                          onBlur={e => setFormData({ ...formData, imageUrl: cleanUrl(e.target.value) })}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">Link de Destino do Banner</label>
-                        <input
-                          type="url"
-                          placeholder="https://suapagina.com"
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                          value={formData.imageLink}
-                          onChange={e => setFormData({ ...formData, imageLink: e.target.value })}
-                          onBlur={e => setFormData({ ...formData, imageLink: cleanUrl(e.target.value) })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">Texto do Botão CTA</label>
-                        <input
-                          type="text"
-                          placeholder="ex: Acessar Produto"
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                          value={formData.ctaText}
-                          onChange={e => setFormData({ ...formData, ctaText: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">URL do Botão CTA</label>
-                        <input
-                          type="url"
-                          placeholder="https://suapagina.com/checkout"
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                          value={formData.ctaUrl}
-                          onChange={e => setFormData({ ...formData, ctaUrl: e.target.value })}
-                          onBlur={e => setFormData({ ...formData, ctaUrl: cleanUrl(e.target.value) })}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Social links */}
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase">Links de Redes Sociais</label>
-                        <button type="button" onClick={addSocialLink} className="text-xs text-brand-600 dark:text-brand-400 font-bold hover:underline">+ Adicionar</button>
-                      </div>
-                      <div className="space-y-2">
-                        {formData.socialLinks.map((link, idx) => (
-                          <div key={idx} className="flex gap-2 items-center">
-                            <select
-                              className="text-xs border border-slate-200 dark:border-slate-800 rounded px-2 py-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none"
-                              value={link.platform}
-                              onChange={e => updateSocialLink(idx, 'platform', e.target.value as any)}
-                            >
-                              <option value="facebook">Facebook</option>
-                              <option value="instagram">Instagram</option>
-                              <option value="linkedin">LinkedIn</option>
-                              <option value="twitter">X / Twitter</option>
-                              <option value="youtube">YouTube</option>
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mensagem (Corpo do E-mail)</label>
+                        <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 bg-white dark:bg-slate-900">
+                          <div className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 p-2 flex gap-1 flex-wrap items-center">
+                            <button type="button" onClick={() => handleFormat('bold')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 font-bold" title="Negrito">B</button>
+                            <button type="button" onClick={() => handleFormat('italic')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 italic" title="Itálico">I</button>
+                            <button type="button" onClick={() => handleFormat('underline')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 underline" title="Sublinhado">U</button>
+                            <div className="w-px h-4 bg-slate-300 dark:bg-slate-750 mx-1"></div>
+                            <select onChange={(e) => handleFormat('fontName', e.target.value)} className="text-xs border border-slate-200 dark:border-slate-800 rounded p-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+                              <option value="Arial">Arial</option>
+                              <option value="Courier New">Courier</option>
+                              <option value="Georgia">Georgia</option>
+                              <option value="Times New Roman">Times</option>
+                              <option value="Verdana">Verdana</option>
                             </select>
+                          </div>
+                          <div
+                            ref={editorRef}
+                            contentEditable
+                            suppressContentEditableWarning={true}
+                            className="w-full p-4 min-h-[280px] outline-none prose prose-sm max-w-none dark:prose-invert"
+                            onInput={(e) => setFormData({ ...formData, content: e.currentTarget.innerHTML })}
+                            onBlur={(e) => setFormData({ ...formData, content: e.currentTarget.innerHTML })}
+                            style={{ fontFamily: 'Arial, sans-serif' }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Layout Elements Container */}
+                      <div className="bg-slate-50 dark:bg-slate-950/40 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/80 space-y-4">
+                        <h3 className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 border-b dark:border-slate-800 pb-2">
+                          <ImageIcon size={18} className="text-brand-500" />
+                          Mídia e Call-to-Action (Botão)
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">Banner Principal (URL)</label>
                             <input
                               type="url"
-                              placeholder="https://redesocial.com/seuusuario"
-                              className="flex-1 text-xs border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded px-3 py-2 outline-none"
-                              value={link.url}
-                              onChange={e => updateSocialLink(idx, 'url', e.target.value)}
-                              onBlur={e => updateSocialLink(idx, 'url', cleanUrl(e.target.value))}
+                              placeholder="https://imagem.com/banner.jpg"
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                              value={formData.imageUrl}
+                              onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                              onBlur={e => setFormData({ ...formData, imageUrl: cleanUrl(e.target.value) })}
                             />
-                            <button type="button" onClick={() => removeSocialLink(idx)} className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-1.5 rounded">
-                              <Trash2 size={14} />
-                            </button>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">Link de Destino do Banner</label>
+                            <input
+                              type="url"
+                              placeholder="https://suapagina.com"
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                              value={formData.imageLink}
+                              onChange={e => setFormData({ ...formData, imageLink: e.target.value })}
+                              onBlur={e => setFormData({ ...formData, imageLink: cleanUrl(e.target.value) })}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">Texto do Botão CTA</label>
+                            <input
+                              type="text"
+                              placeholder="ex: Acessar Produto"
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                              value={formData.ctaText}
+                              onChange={e => setFormData({ ...formData, ctaText: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">URL do Botão CTA</label>
+                            <input
+                              type="url"
+                              placeholder="https://suapagina.com/checkout"
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                              value={formData.ctaUrl}
+                              onChange={e => setFormData({ ...formData, ctaUrl: e.target.value })}
+                              onBlur={e => setFormData({ ...formData, ctaUrl: cleanUrl(e.target.value) })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Social links */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase">Links de Redes Sociais</label>
+                            <button type="button" onClick={addSocialLink} className="text-xs text-brand-600 dark:text-brand-400 font-bold hover:underline">+ Adicionar</button>
+                          </div>
+                          <div className="space-y-2">
+                            {formData.socialLinks.map((link, idx) => (
+                              <div key={idx} className="flex gap-2 items-center">
+                                <select
+                                  className="text-xs border border-slate-200 dark:border-slate-800 rounded px-2 py-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none"
+                                  value={link.platform}
+                                  onChange={e => updateSocialLink(idx, 'platform', e.target.value as any)}
+                                >
+                                  <option value="facebook">Facebook</option>
+                                  <option value="instagram">Instagram</option>
+                                  <option value="linkedin">LinkedIn</option>
+                                  <option value="twitter">X / Twitter</option>
+                                  <option value="youtube">YouTube</option>
+                                </select>
+                                <input
+                                  type="url"
+                                  placeholder="https://redesocial.com/seuusuario"
+                                  className="flex-1 text-xs border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded px-3 py-2 outline-none"
+                                  value={link.url}
+                                  onChange={e => updateSocialLink(idx, 'url', e.target.value)}
+                                  onBlur={e => updateSocialLink(idx, 'url', cleanUrl(e.target.value))}
+                                />
+                                <button type="button" onClick={() => removeSocialLink(idx)} className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-1.5 rounded">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Rich Footer Configuration */}
+                        <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-6">
+                          <h3 className="font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2 mb-2">
+                            <Sparkles size={18} className="text-brand-500" />
+                            Rodapé Adicional
+                          </h3>
+                          
+                          <div className="space-y-4 mt-4">
+                            <div>
+                              <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">Texto Auxiliar do Rodapé</label>
+                              <input
+                                type="text"
+                                placeholder="ex: Dúvidas? Fale conosco no suporte"
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                                value={formData.footerText}
+                                onChange={e => setFormData({ ...formData, footerText: e.target.value })}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">Texto do Link Extra</label>
+                                <input
+                                  type="text"
+                                  placeholder="ex: Termos de Uso"
+                                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                                  value={formData.footerLinkText}
+                                  onChange={e => setFormData({ ...formData, footerLinkText: e.target.value })}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">URL do Link Extra</label>
+                                <input
+                                  type="url"
+                                  placeholder="https://..."
+                                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                                  value={formData.footerLinkUrl}
+                                  onChange={e => setFormData({ ...formData, footerLinkUrl: e.target.value })}
+                                  onBlur={e => setFormData({ ...formData, footerLinkUrl: cleanUrl(e.target.value) })}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">Texto Botão Rodapé</label>
+                                <input
+                                  type="text"
+                                  placeholder="ex: Fale Conosco"
+                                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                                  value={formData.footerButtonText}
+                                  onChange={e => setFormData({ ...formData, footerButtonText: e.target.value })}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">URL Botão Rodapé</label>
+                                <input
+                                  type="url"
+                                  placeholder="https://..."
+                                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                                  value={formData.footerButtonUrl}
+                                  onChange={e => setFormData({ ...formData, footerButtonUrl: e.target.value })}
+                                  onBlur={e => setFormData({ ...formData, footerButtonUrl: cleanUrl(e.target.value) })}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">Logo Rodapé (URL)</label>
+                                <input
+                                  type="url"
+                                  placeholder="https://loja.com/mini-logo.png"
+                                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                                  value={formData.footerImageUrl}
+                                  onChange={e => setFormData({ ...formData, footerImageUrl: e.target.value })}
+                                  onBlur={e => setFormData({ ...formData, footerImageUrl: cleanUrl(e.target.value) })}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">Link de Destino do Logo</label>
+                                <input
+                                  type="url"
+                                  placeholder="https://loja.com"
+                                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                                  value={formData.footerImageLink}
+                                  onChange={e => setFormData({ ...formData, footerImageLink: e.target.value })}
+                                  onBlur={e => setFormData({ ...formData, footerImageLink: cleanUrl(e.target.value) })}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* -------------------- VISUAL SECTION BUILDER -------------------- */}
+                  {formData.editorMode === 'visual' && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                      {/* Configurações Gerais de Design */}
+                      <div className="bg-slate-50 dark:bg-slate-950/40 p-5 rounded-2xl border dark:border-slate-800 space-y-4">
+                        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                          <Settings size={16} className="text-brand-500" />
+                          Configurações Gerais do E-mail
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tipografia Principal</label>
+                            <select
+                              className="w-full text-xs border dark:border-slate-800 rounded px-2.5 py-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none"
+                              value={formData.fontFamily}
+                              onChange={e => setFormData({ ...formData, fontFamily: e.target.value })}
+                            >
+                              <option value='"Cormorant Garamond", Georgia, serif'>PhD Editorial (Serif - Cormorant)</option>
+                              <option value='"DM Sans", sans-serif'>PhD Corporativo (Sans-Serif - DM Sans)</option>
+                              <option value='Arial, sans-serif'>Padrão E-mail (Arial)</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cor de Fundo do E-mail</label>
+                            <div className="flex gap-2 mt-1">
+                              {['#f9fafb', '#F3EFE6', '#0C1824', '#ffffff'].map(color => (
+                                <button
+                                  key={color}
+                                  type="button"
+                                  onClick={() => setFormData({ ...formData, bgColor: color })}
+                                  className={`w-6 h-6 rounded-full border-2 ${formData.bgColor === color ? 'border-brand-500 scale-110' : 'border-slate-200 dark:border-slate-800'} transition-all`}
+                                  style={{ backgroundColor: color }}
+                                  title={color}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Lista de Seções */}
+                      <div className="space-y-6">
+                        {formData.sections.map((section, sIdx) => (
+                          <div key={section.id} className="bg-slate-50 dark:bg-slate-900/40 p-5 rounded-2xl border dark:border-slate-800 space-y-4">
+                            {/* Section Toolbar */}
+                            <div className="flex justify-between items-center border-b dark:border-slate-800 pb-3 flex-wrap gap-2">
+                              <span className="text-xs font-bold text-slate-400 dark:text-slate-500">Seção #{sIdx + 1}</span>
+                              <div className="flex items-center space-x-2 flex-wrap gap-1">
+                                {/* Color choices */}
+                                <div className="flex gap-1 items-center bg-white dark:bg-slate-950 px-2 py-1 rounded-lg border dark:border-slate-800">
+                                  <span className="text-[10px] text-slate-400 mr-1">Fundo:</span>
+                                  {['#FDFBF7', '#F3EFE6', '#0C1824', '#ffffff'].map(color => (
+                                    <button
+                                      key={color}
+                                      type="button"
+                                      onClick={() => handleUpdateSection(section.id, 'bgColor', color)}
+                                      className={`w-4 h-4 rounded-full border ${section.bgColor === color ? 'border-brand-500 scale-110' : 'border-slate-200 dark:border-slate-800'}`}
+                                      style={{ backgroundColor: color }}
+                                    />
+                                  ))}
+                                </div>
+                                <div className="flex gap-1 items-center bg-white dark:bg-slate-950 px-2 py-1 rounded-lg border dark:border-slate-800">
+                                  <span className="text-[10px] text-slate-400 mr-1">Texto:</span>
+                                  {['#17130E', '#FDFBF7', '#3A3025'].map(color => (
+                                    <button
+                                      key={color}
+                                      type="button"
+                                      onClick={() => handleUpdateSection(section.id, 'textColor', color)}
+                                      className={`w-4 h-4 rounded-full border ${section.textColor === color ? 'border-brand-500 scale-110' : 'border-slate-200 dark:border-slate-800'}`}
+                                      style={{ backgroundColor: color }}
+                                    />
+                                  ))}
+                                </div>
+                                {/* Padding */}
+                                <select
+                                  className="text-[10px] border dark:border-slate-800 rounded px-1.5 py-1 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 outline-none"
+                                  value={section.padding || 'medium'}
+                                  onChange={e => handleUpdateSection(section.id, 'padding', e.target.value)}
+                                >
+                                  <option value="small">Espaço P</option>
+                                  <option value="medium">Espaço M</option>
+                                  <option value="large">Espaço G</option>
+                                </select>
+
+                                {/* Action Buttons */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveSection(section.id, 'up')}
+                                  disabled={sIdx === 0}
+                                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 p-1"
+                                >
+                                  <ArrowUp size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveSection(section.id, 'down')}
+                                  disabled={sIdx === formData.sections.length - 1}
+                                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 p-1"
+                                >
+                                  <ArrowDown size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSection(section.id)}
+                                  className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-1 rounded"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Blocks container */}
+                            <div className="space-y-3">
+                              {section.blocks.map((block, bIdx) => (
+                                <div key={block.id} className="bg-white dark:bg-slate-950 p-4 rounded-xl border dark:border-slate-800 space-y-3 shadow-inner relative group/block">
+                                  {/* Block header */}
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{block.type === 'text' ? 'Texto' : block.type === 'video' ? 'Vídeo' : block.type === 'image' ? 'Imagem' : block.type === 'cta' ? 'Botão' : 'Divisor'}</span>
+                                    <div className="flex items-center space-x-1 opacity-60 hover:opacity-100 transition-opacity">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMoveBlock(section.id, block.id, 'up')}
+                                        disabled={bIdx === 0}
+                                        className="text-slate-400 hover:text-slate-600 disabled:opacity-30 p-1"
+                                      >
+                                        <ArrowUp size={12} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMoveBlock(section.id, block.id, 'down')}
+                                        disabled={bIdx === section.blocks.length - 1}
+                                        className="text-slate-400 hover:text-slate-600 disabled:opacity-30 p-1"
+                                      >
+                                        <ArrowDown size={12} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveBlock(section.id, block.id)}
+                                        className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-1 rounded"
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Block input fields */}
+                                  {block.type === 'text' && (
+                                    <div className="space-y-2">
+                                      {/* Formatting buttons */}
+                                      <div className="bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-1.5 rounded-lg flex gap-1 flex-wrap items-center">
+                                        <button type="button" onClick={() => handleFormat('bold')} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 text-xs font-bold" title="Negrito">B</button>
+                                        <button type="button" onClick={() => handleFormat('italic')} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 text-xs italic" title="Itálico">I</button>
+                                        <button type="button" onClick={() => handleFormat('underline')} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 text-xs underline" title="Sublinhado">U</button>
+                                        <div className="w-px h-4 bg-slate-300 dark:bg-slate-750 mx-1"></div>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleOpenLinkPicker(section.id, block.id, 'content')}
+                                          className="flex items-center space-x-1 px-2 py-0.5 border dark:border-slate-800 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-[10px] font-bold text-slate-600"
+                                        >
+                                          <LinkIcon size={10} />
+                                          <span>Inserir Link Salvo</span>
+                                        </button>
+                                      </div>
+                                      <div
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        className="w-full p-3 min-h-[120px] bg-slate-50/50 dark:bg-slate-900/50 border dark:border-slate-800 rounded-lg outline-none prose prose-sm max-w-none dark:prose-invert text-xs"
+                                        onBlur={(e) => handleUpdateBlock(section.id, block.id, 'content', e.currentTarget.innerHTML)}
+                                        dangerouslySetInnerHTML={{ __html: block.content || '' }}
+                                        style={{ fontFamily: formData.fontFamily }}
+                                      />
+                                    </div>
+                                  )}
+
+                                  {block.type === 'video' && (
+                                    <div className="space-y-2">
+                                      <label className="block text-[9px] font-bold text-slate-400 uppercase">URL do Vídeo do YouTube</label>
+                                      <input
+                                        type="url"
+                                        placeholder="https://www.youtube.com/watch?v=..."
+                                        className="w-full px-3 py-2 text-xs rounded-lg border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white"
+                                        value={block.videoUrl}
+                                        onChange={e => handleUpdateBlock(section.id, block.id, 'videoUrl', e.target.value)}
+                                      />
+                                      {block.videoUrl && (
+                                        <div className="mt-2 text-center text-slate-400 text-[10px] italic">
+                                          Preview do player com botão de play será gerado no e-mail.
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {block.type === 'image' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">URL da Imagem</label>
+                                        <input
+                                          type="url"
+                                          placeholder="https://imagem.com/foto.jpg"
+                                          className="w-full px-3 py-2 text-xs rounded-lg border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white"
+                                          value={block.imageUrl}
+                                          onChange={e => handleUpdateBlock(section.id, block.id, 'imageUrl', e.target.value)}
+                                        />
+                                      </div>
+                                      <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                          <label className="block text-[9px] font-bold text-slate-400 uppercase">Link de Destino</label>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleOpenLinkPicker(section.id, block.id, 'imageLink')}
+                                            className="text-[9px] text-brand-600 font-bold hover:underline"
+                                          >
+                                            Link Salvo
+                                          </button>
+                                        </div>
+                                        <input
+                                          type="url"
+                                          placeholder="https://pagina.com"
+                                          className="w-full px-3 py-2 text-xs rounded-lg border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white"
+                                          value={block.imageLink}
+                                          onChange={e => handleUpdateBlock(section.id, block.id, 'imageLink', e.target.value)}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {block.type === 'cta' && (
+                                    <div className="space-y-3">
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                          <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Texto do Botão</label>
+                                          <input
+                                            type="text"
+                                            placeholder="ex: Fazer Inscrição"
+                                            className="w-full px-3 py-2 text-xs rounded-lg border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white"
+                                            value={block.ctaText}
+                                            onChange={e => handleUpdateBlock(section.id, block.id, 'ctaText', e.target.value)}
+                                          />
+                                        </div>
+                                        <div>
+                                          <div className="flex justify-between items-center mb-1">
+                                            <label className="block text-[9px] font-bold text-slate-400 uppercase">Link do Botão</label>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleOpenLinkPicker(section.id, block.id, 'ctaUrl')}
+                                              className="text-[9px] text-brand-600 font-bold hover:underline"
+                                            >
+                                              Link Salvo
+                                            </button>
+                                          </div>
+                                          <input
+                                            type="url"
+                                            placeholder="https://..."
+                                            className="w-full px-3 py-2 text-xs rounded-lg border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white"
+                                            value={block.ctaUrl}
+                                            onChange={e => handleUpdateBlock(section.id, block.id, 'ctaUrl', e.target.value)}
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div className="grid grid-cols-3 gap-2">
+                                        <div>
+                                          <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Alinhamento</label>
+                                          <select
+                                            className="w-full text-xs border dark:border-slate-800 rounded px-2 py-1.5 bg-slate-50/50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 outline-none"
+                                            value={block.ctaAlign}
+                                            onChange={e => handleUpdateBlock(section.id, block.id, 'ctaAlign', e.target.value)}
+                                          >
+                                            <option value="left">Esquerda</option>
+                                            <option value="center">Centralizado</option>
+                                            <option value="right">Direita</option>
+                                          </select>
+                                        </div>
+                                        <div>
+                                          <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Cor do Botão (Fundo)</label>
+                                          <input
+                                            type="text"
+                                            placeholder="Hex/Cód"
+                                            className="w-full px-2 py-1.5 text-xs rounded-lg border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white font-mono"
+                                            value={block.ctaBgColor}
+                                            onChange={e => handleUpdateBlock(section.id, block.id, 'ctaBgColor', e.target.value)}
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Cor do Texto</label>
+                                          <input
+                                            type="text"
+                                            placeholder="Hex/Cód"
+                                            className="w-full px-2 py-1.5 text-xs rounded-lg border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white font-mono"
+                                            value={block.ctaTextColor}
+                                            onChange={e => handleUpdateBlock(section.id, block.id, 'ctaTextColor', e.target.value)}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {block.type === 'divider' && (
+                                    <div className="flex items-center space-x-3">
+                                      <label className="block text-[9px] font-bold text-slate-400 uppercase whitespace-nowrap">Altura do Espaço</label>
+                                      <input
+                                        type="range"
+                                        min="10"
+                                        max="80"
+                                        className="flex-1 accent-brand-600"
+                                        value={block.spacing}
+                                        onChange={e => handleUpdateBlock(section.id, block.id, 'spacing', parseInt(e.target.value))}
+                                      />
+                                      <span className="text-xs font-mono">{block.spacing}px</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Add Block Toolbar */}
+                            <div className="flex flex-wrap gap-1.5 pt-2 border-t dark:border-slate-800 justify-center">
+                              <span className="text-[9px] font-bold text-slate-450 uppercase self-center mr-1">Adicionar Bloco:</span>
+                              <button type="button" onClick={() => handleAddBlock(section.id, 'text')} className="px-2.5 py-1 text-[10px] font-semibold bg-white dark:bg-slate-950 border dark:border-slate-850 rounded hover:bg-slate-100 text-slate-700 dark:text-slate-300 shadow-sm">+ Texto</button>
+                              <button type="button" onClick={() => handleAddBlock(section.id, 'video')} className="px-2.5 py-1 text-[10px] font-semibold bg-white dark:bg-slate-950 border dark:border-slate-850 rounded hover:bg-slate-100 text-slate-700 dark:text-slate-300 shadow-sm">+ Vídeo</button>
+                              <button type="button" onClick={() => handleAddBlock(section.id, 'image')} className="px-2.5 py-1 text-[10px] font-semibold bg-white dark:bg-slate-950 border dark:border-slate-850 rounded hover:bg-slate-100 text-slate-700 dark:text-slate-300 shadow-sm">+ Imagem</button>
+                              <button type="button" onClick={() => handleAddBlock(section.id, 'cta')} className="px-2.5 py-1 text-[10px] font-semibold bg-white dark:bg-slate-950 border dark:border-slate-850 rounded hover:bg-slate-100 text-slate-700 dark:text-slate-300 shadow-sm">+ Botão CTA</button>
+                              <button type="button" onClick={() => handleAddBlock(section.id, 'divider')} className="px-2.5 py-1 text-[10px] font-semibold bg-white dark:bg-slate-950 border dark:border-slate-850 rounded hover:bg-slate-100 text-slate-700 dark:text-slate-300 shadow-sm">+ Divisor</button>
+                            </div>
                           </div>
                         ))}
                       </div>
+
+                      {/* Add Section Button */}
+                      <button
+                        type="button"
+                        onClick={handleAddSection}
+                        className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-brand-500 text-slate-400 hover:text-brand-600 rounded-2xl transition-all flex items-center justify-center space-x-2 bg-white dark:bg-slate-900/10 shadow-sm"
+                      >
+                        <Plus size={18} />
+                        <span className="text-sm font-bold">Nova Seção Horizontal</span>
+                      </button>
                     </div>
-
-                    {/* Rich Footer Configuration */}
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-6">
-                      <h3 className="font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2 mb-2">
-                        <Sparkles size={18} className="text-brand-500" />
-                        Rodapé Adicional
-                      </h3>
-                      
-                      <div className="space-y-4 mt-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase mb-1">Texto Auxiliar do Rodapé</label>
-                          <input
-                            type="text"
-                            placeholder="ex: Dúvidas? Fale conosco no suporte"
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                            value={formData.footerText}
-                            onChange={e => setFormData({ ...formData, footerText: e.target.value })}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">Texto do Link Extra</label>
-                            <input
-                              type="text"
-                              placeholder="ex: Termos de Uso"
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                              value={formData.footerLinkText}
-                              onChange={e => setFormData({ ...formData, footerLinkText: e.target.value })}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">URL do Link Extra</label>
-                            <input
-                              type="url"
-                              placeholder="https://..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                              value={formData.footerLinkUrl}
-                              onChange={e => setFormData({ ...formData, footerLinkUrl: e.target.value })}
-                              onBlur={e => setFormData({ ...formData, footerLinkUrl: cleanUrl(e.target.value) })}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">Texto Botão Rodapé</label>
-                            <input
-                              type="text"
-                              placeholder="ex: Fale Conosco"
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                              value={formData.footerButtonText}
-                              onChange={e => setFormData({ ...formData, footerButtonText: e.target.value })}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">URL Botão Rodapé</label>
-                            <input
-                              type="url"
-                              placeholder="https://..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                              value={formData.footerButtonUrl}
-                              onChange={e => setFormData({ ...formData, footerButtonUrl: e.target.value })}
-                              onBlur={e => setFormData({ ...formData, footerButtonUrl: cleanUrl(e.target.value) })}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">Logo Rodapé (URL)</label>
-                            <input
-                              type="url"
-                              placeholder="https://loja.com/mini-logo.png"
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                              value={formData.footerImageUrl}
-                              onChange={e => setFormData({ ...formData, footerImageUrl: e.target.value })}
-                              onBlur={e => setFormData({ ...formData, footerImageUrl: cleanUrl(e.target.value) })}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1">Link de Destino do Logo</label>
-                            <input
-                              type="url"
-                              placeholder="https://loja.com"
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                              value={formData.footerImageLink}
-                              onChange={e => setFormData({ ...formData, footerImageLink: e.target.value })}
-                              onBlur={e => setFormData({ ...formData, footerImageLink: cleanUrl(e.target.value) })}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Right Interactive Sidebar (Split Pane) */}
@@ -1092,29 +2036,45 @@ const CampaignWizard: React.FC = () => {
                             
                             {/* Email Render Frame */}
                             <div className="max-h-[380px] overflow-y-auto p-4 bg-slate-50 dark:bg-slate-900 font-sans">
-                              {formData.imageUrl && (
-                                <img src={formData.imageUrl} alt="Banner" className="w-full h-32 object-cover rounded-lg mb-4" />
-                              )}
-                              <h2 className="text-sm font-bold mb-3">{formData.subject || 'Sem Assunto'}</h2>
-                              <div 
-                                className="text-xs leading-relaxed text-slate-700 dark:text-slate-350 prose prose-sm max-w-none"
-                                dangerouslySetInnerHTML={{ __html: formData.content || 'Digitar corpo...' }}
-                              />
-                              
-                              {formData.ctaText && formData.ctaUrl && (
-                                <div className="text-center my-4">
-                                  <a href={formData.ctaUrl} className="inline-block bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2 px-5 rounded-lg no-underline shadow-sm">
-                                    {formData.ctaText}
-                                  </a>
-                                </div>
-                              )}
+                              {formData.editorMode === 'visual' ? (
+                                <div 
+                                  className="w-full text-xs leading-relaxed rounded-lg overflow-hidden border dark:border-slate-800"
+                                  style={{ 
+                                    fontFamily: formData.fontFamily, 
+                                    color: formData.textColor, 
+                                    backgroundColor: formData.bgColor 
+                                  }}
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: compileSectionsToHtml(formData.sections) || '<div class="p-6 text-center text-slate-400 italic">Adicione seções e blocos para começar a construir seu layout...</div>' 
+                                  }}
+                                />
+                              ) : (
+                                <>
+                                  {formData.imageUrl && (
+                                    <img src={formData.imageUrl} alt="Banner" className="w-full h-32 object-cover rounded-lg mb-4" />
+                                  )}
+                                  <h2 className="text-sm font-bold mb-3">{formData.subject || 'Sem Assunto'}</h2>
+                                  <div 
+                                    className="text-xs leading-relaxed text-slate-700 dark:text-slate-350 prose prose-sm max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: formData.content || 'Digitar corpo...' }}
+                                  />
+                                  
+                                  {formData.ctaText && formData.ctaUrl && (
+                                    <div className="text-center my-4">
+                                      <a href={formData.ctaUrl} className="inline-block bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2 px-5 rounded-lg no-underline shadow-sm">
+                                        {formData.ctaText}
+                                      </a>
+                                    </div>
+                                  )}
 
-                              {formData.socialLinks.length > 0 && (
-                                <div className="flex justify-center gap-3 pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 text-slate-400">
-                                  {formData.socialLinks.map((s, idx) => (
-                                    <div key={idx}>{getSocialIcon(s.platform)}</div>
-                                  ))}
-                                </div>
+                                  {formData.socialLinks.length > 0 && (
+                                    <div className="flex justify-center gap-3 pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 text-slate-400">
+                                      {formData.socialLinks.map((s, idx) => (
+                                        <div key={idx}>{getSocialIcon(s.platform)}</div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           </div>
@@ -1649,6 +2609,114 @@ const CampaignWizard: React.FC = () => {
               >
                 {sendingTest ? <Loader2 size={12} className="animate-spin" /> : null}
                 <span>Enviar Teste</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BANCO DE LINKS MODAL */}
+      {showLinkModal && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 shadow-2xl p-6 max-w-lg w-full space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                <LinkIcon size={20} className="text-brand-500" />
+                Banco de Links Rápidos
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setShowLinkModal(false);
+                  setActiveLinkField(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Gerencie seus links frequentes (cursos, redes sociais, agendamentos) para inserção rápida nos CTAs, Banners ou Textos do e-mail.
+            </p>
+
+            {/* Form to Add New Link */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border dark:border-slate-800 space-y-3">
+              <span className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider">Adicionar Novo Link Útil</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="Nome Amigável (ex: Pagina de Vendas)"
+                  className="px-3 py-2 text-xs rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
+                  value={newLinkName}
+                  onChange={e => setNewLinkName(e.target.value)}
+                />
+                <input
+                  type="url"
+                  placeholder="https://suapagina.com"
+                  className="px-3 py-2 text-xs rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
+                  value={newLinkUrl}
+                  onChange={e => setNewLinkUrl(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  disabled={!newLinkName || !newLinkUrl}
+                  onClick={handleCreateSavedLink}
+                  className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-sm"
+                >
+                  Salvar no Banco
+                </button>
+              </div>
+            </div>
+
+            {/* List of Saved Links */}
+            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              <span className="block text-[10px] font-bold text-slate-455 uppercase tracking-wider">Links Arquivados</span>
+              {savedLinks.length === 0 ? (
+                <div className="text-center py-6 text-xs text-slate-450 italic">
+                  Nenhum link arquivado ainda. Adicione um acima.
+                </div>
+              ) : (
+                savedLinks.map(link => (
+                  <div key={link.id} className="flex justify-between items-center p-3 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-950 border dark:border-slate-850 rounded-xl transition-all">
+                    <div className="min-w-0 flex-1 pr-3">
+                      <span className="font-bold text-xs text-slate-800 dark:text-slate-200 block truncate">{link.name}</span>
+                      <span className="text-[10px] text-slate-450 block truncate font-mono">{link.url}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectLink(link.url)}
+                        className="px-3 py-1 bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-brand-700 dark:text-brand-400 text-xs font-bold rounded-lg transition-all"
+                      >
+                        Selecionar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSavedLink(link.id)}
+                        className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-1.5 rounded transition-all"
+                        title="Excluir link do banco"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLinkModal(false);
+                  setActiveLinkField(null);
+                }}
+                className="px-4 py-2 border dark:border-slate-800 text-xs font-semibold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Fechar
               </button>
             </div>
           </div>

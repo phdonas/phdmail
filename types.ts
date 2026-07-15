@@ -51,6 +51,43 @@ export interface Campaign {
   failedCount?: number;
   totalRecipients?: number;
   isTest?: boolean;
+  sections?: EmailSection[];
+  bgColor?: string;
+  containerBgColor?: string;
+  textColor?: string;
+  fontFamily?: string;
+}
+
+export interface LinkItem {
+  id: string;
+  name: string;
+  url: string;
+  archived?: boolean;
+}
+
+export type EmailBlockType = 'text' | 'video' | 'image' | 'cta' | 'divider';
+
+export interface EmailBlock {
+  id: string;
+  type: EmailBlockType;
+  content?: string;
+  imageUrl?: string;
+  imageLink?: string;
+  videoUrl?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  ctaAlign?: 'left' | 'center' | 'right';
+  ctaBgColor?: string;
+  ctaTextColor?: string;
+  spacing?: number;
+}
+
+export interface EmailSection {
+  id: string;
+  bgColor: string;
+  textColor: string;
+  padding?: 'small' | 'medium' | 'large';
+  blocks: EmailBlock[];
 }
 
 export interface Contact {

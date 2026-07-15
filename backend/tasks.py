@@ -48,6 +48,10 @@ def send_email_task(self, recipient_email, subject, context, campaign_id):
         cta_text = None
         cta_url = None
         social_links = []
+        bg_color = '#f9fafb'
+        container_bg_color = '#ffffff'
+        text_color = '#334155'
+        font_family = 'Helvetica, Arial, sans-serif'
     else:
         content_html = context.get('content', '')
         image_url = context.get('imageUrl')
@@ -55,6 +59,12 @@ def send_email_task(self, recipient_email, subject, context, campaign_id):
         cta_text = context.get('ctaText')
         cta_url = context.get('ctaUrl')
         social_links = context.get('socialLinks', [])
+        
+        # Design configuration
+        bg_color = context.get('bgColor') or '#f9fafb'
+        container_bg_color = context.get('containerBgColor') or '#ffffff'
+        text_color = context.get('textColor') or '#334155'
+        font_family = context.get('fontFamily') or 'Helvetica, Arial, sans-serif'
         
         # Footer
         footer_text = context.get('footerText')
@@ -166,23 +176,28 @@ def send_email_task(self, recipient_email, subject, context, campaign_id):
 
     unsubscribe_url = f"https://phdonas-site-corrigido.web.app/#/unsubscribe?email={recipient_email}"
     
+    google_fonts_link = ""
+    if font_family and ('Cormorant' in font_family or 'DM Sans' in font_family):
+        google_fonts_link = '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">'
+    
     full_html = f'''
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
+        {google_fonts_link}
         <style>
-            body {{ margin: 0; padding: 0; font-family: Helvetica, Arial, sans-serif; background-color: #f9fafb; }}
-            .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; }}
-            .content {{ padding: 20px 40px; line-height: 1.6; color: #334155; }}
-            a {{ color: #4F46E5; }}
+            body {{ margin: 0; padding: 0; font-family: {font_family}; background-color: {bg_color}; }}
+            .container {{ max-width: 600px; margin: 0 auto; background-color: {container_bg_color}; }}
+            .content {{ padding: 20px 40px; line-height: 1.6; color: {text_color}; }}
+            a {{ color: #A87828; }}
         </style>
     </head>
-    <body style="margin: 0; padding: 20px;">
-        <div class="container" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <body style="margin: 0; padding: 20px; background-color: {bg_color}; font-family: {font_family}; color: {text_color};">
+        <div class="container" style="max-width: 600px; margin: 0 auto; background-color: {container_bg_color}; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             {header_html}
             
-            <div class="content" style="padding: 30px 40px; color: #334155; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.6;">
+            <div class="content" style="padding: 30px 40px; color: {text_color}; font-family: {font_family}; font-size: 16px; line-height: 1.6;">
                 {content_html}
                 
                 <div style="text-align: center;">

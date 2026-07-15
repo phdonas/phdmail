@@ -98,6 +98,12 @@ if __name__ == "__main__":
                     'ctaUrl': campaign_data.get('ctaUrl'),
                     'socialLinks': campaign_data.get('socialLinks'),
                     
+                    # Design parameters
+                    'bgColor': campaign_data.get('bgColor'),
+                    'containerBgColor': campaign_data.get('containerBgColor'),
+                    'textColor': campaign_data.get('textColor'),
+                    'fontFamily': campaign_data.get('fontFamily'),
+                    
                     # Footer Fields
                     'footerText': campaign_data.get('footerText'),
                     'footerLinkText': campaign_data.get('footerLinkText'),
