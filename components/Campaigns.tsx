@@ -34,6 +34,8 @@ const Campaigns: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [sortField, setSortField] = useState<'createdAt' | 'name' | 'status'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showFilterBar, setShowFilterBar] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'sent' | 'sending' | 'queued' | 'draft'>('all');
 
   useEffect(() => {
     const loadCampaigns = async () => {
@@ -75,6 +77,7 @@ const Campaigns: React.FC = () => {
 
   const filteredCampaigns = campaigns
     .filter(c => !c.isTest)
+    .filter(c => statusFilter === 'all' || c.status === statusFilter)
     .filter(c =>
       (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.subject || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -156,12 +159,50 @@ const Campaigns: React.FC = () => {
                 <Filter size={16} className={sortOrder === 'desc' ? 'rotate-180 transition-transform' : 'transition-transform'} />
               </button>
             </div>
-            <button className="flex items-center space-x-2 px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-650 dark:text-slate-350">
-              <Plus size={16} className="text-slate-400" />
+            <button 
+              onClick={() => setShowFilterBar(!showFilterBar)}
+              className={`flex items-center space-x-2 px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+                showFilterBar || statusFilter !== 'all'
+                  ? 'border-brand-500 bg-brand-50/10 text-brand-500'
+                  : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-650 dark:text-slate-350'
+              }`}
+            >
+              <Plus size={16} className={showFilterBar ? "rotate-45 transition-transform" : "transition-transform"} />
               <span>Filtros</span>
             </button>
           </div>
         </div>
+
+        {showFilterBar && (
+          <div className="flex flex-wrap items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800 mb-6">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Filtrar por Status:</span>
+            <div className="flex flex-wrap gap-2">
+              {(['all', 'sent', 'sending', 'queued', 'draft'] as const).map((status) => {
+                const labelMap = {
+                  all: 'Todas',
+                  sent: 'Enviadas',
+                  sending: 'Enviando',
+                  queued: 'Fila',
+                  draft: 'Rascunhos'
+                };
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      statusFilter === status
+                        ? 'bg-brand-500 text-white border-brand-500 shadow-sm'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-650 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    {labelMap[status]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-left">
