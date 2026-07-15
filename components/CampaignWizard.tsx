@@ -1246,14 +1246,26 @@ const CampaignWizard: React.FC = () => {
 
     setLoading(true);
     const targetStatus = scheduleType === 'scheduled' ? 'scheduled' : 'queued';
-    setSendingStatus(scheduleType === 'scheduled' ? "Agendando campanha..." : "Enviando campanha para processamento...");
 
     try {
+      // Step 1: Compile HTML content
+      setSendingStatus("1 de 4: Compilando seções e blocos do e-mail...");
+      await new Promise(r => setTimeout(r, 600));
+      
+      let compiledContent = formData.content;
+      if (formData.editorMode === 'visual') {
+        compiledContent = compileSectionsToHtml(formData.sections);
+      }
+
+      // Step 2: Preparing metadata
+      setSendingStatus("2 de 4: Preparando e-mails dos destinatários e cabeçalhos...");
+      await new Promise(r => setTimeout(r, 600));
+
       const campaign: Campaign = {
         id: formData.id,
         name: formData.name || 'Sem nome',
         subject: formData.subject,
-        content: formData.content,
+        content: compiledContent,
         status: targetStatus,
         sentAt: undefined,
         scheduledFor: scheduleType === 'scheduled' && scheduleDateTime ? new Date(scheduleDateTime).toISOString() : undefined,
@@ -1283,10 +1295,22 @@ const CampaignWizard: React.FC = () => {
         totalRecipients: previewCount
       };
 
+      // Store visual builder specific parameters
+      (campaign as any).editorMode = formData.editorMode;
+      (campaign as any).sections = formData.sections;
+      (campaign as any).bgColor = formData.bgColor;
+      (campaign as any).containerBgColor = formData.containerBgColor;
+      (campaign as any).textColor = formData.textColor;
+      (campaign as any).fontFamily = formData.fontFamily;
+
+      // Step 3: Firestore write
+      setSendingStatus("3 de 4: Salvando dados no banco de dados Firestore...");
+      await new Promise(r => setTimeout(r, 600));
       await updateCampaign(campaign);
       
-      setSendingStatus(scheduleType === 'scheduled' ? "Campanha agendada com sucesso!" : "Campanha na fila de envio!");
-      await new Promise(r => setTimeout(r, 1200));
+      // Step 4: Finalizing
+      setSendingStatus(scheduleType === 'scheduled' ? "4 de 4: Campanha agendada com sucesso!" : "4 de 4: Campanha enviada para processamento!");
+      await new Promise(r => setTimeout(r, 800));
 
       if (scheduleType === 'scheduled') {
         alert(`Campanha agendada com sucesso para ${new Date(scheduleDateTime).toLocaleString('pt-BR')}!`);
@@ -1309,11 +1333,16 @@ const CampaignWizard: React.FC = () => {
     }
     setSendingTest(true);
     try {
+      let compiledContent = formData.content;
+      if (formData.editorMode === 'visual') {
+        compiledContent = compileSectionsToHtml(formData.sections);
+      }
+
       const testCampaign: Campaign = {
         id: `test_${Date.now()}_${formData.id}`,
         name: `[TESTE] ${formData.name || 'Campanha'}`,
         subject: `[TESTE] ${formData.subject}`,
-        content: formData.content,
+        content: compiledContent,
         status: 'queued',
         recipientsCount: 1,
         contacts: [testEmail],
@@ -1336,6 +1365,14 @@ const CampaignWizard: React.FC = () => {
         
         isTest: true
       };
+      
+      // Store visual builder specific parameters for test as well
+      (testCampaign as any).editorMode = formData.editorMode;
+      (testCampaign as any).sections = formData.sections;
+      (testCampaign as any).bgColor = formData.bgColor;
+      (testCampaign as any).containerBgColor = formData.containerBgColor;
+      (testCampaign as any).textColor = formData.textColor;
+      (testCampaign as any).fontFamily = formData.fontFamily;
       
       await updateCampaign(testCampaign);
       alert(`Disparo de teste solicitado para ${testEmail}! O envio ocorre em segundo plano.`);
