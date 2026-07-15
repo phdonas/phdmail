@@ -2793,17 +2793,6 @@ const CampaignWizard: React.FC = () => {
                     </div>
                   )}
                 </div>
-
-                {/* Server checklist info box */}
-                <div className="bg-amber-50/50 dark:bg-slate-950/30 border border-amber-200/50 dark:border-slate-800 rounded-2xl p-5 flex items-start space-x-3 text-amber-850 dark:text-amber-400">
-                  <AlertTriangle className="text-amber-600 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-bold">Verificação do Servidor</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                      Lembre-se de manter o Docker Desktop aberto e rodar `start_backend.bat` para processar a fila de campanhas e o rastreamento em tempo real.
-                    </p>
-                  </div>
-                </div>
               </div>
 
               {/* Action buttons row */}

@@ -37,12 +37,20 @@ export const getCampaignById = async (id: string): Promise<Campaign | undefined>
   return undefined;
 };
 
-// Helper to remove undefined fields which Firestore rejects
-const cleanData = (obj: Record<string, any>) => {
-  const newObj = { ...obj };
-  Object.keys(newObj).forEach(key => {
-    if (newObj[key] === undefined) {
-      delete newObj[key];
+// Helper to remove undefined fields recursively which Firestore rejects
+const cleanData = (obj: any): any => {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => cleanData(item));
+  }
+  
+  const newObj: Record<string, any> = {};
+  Object.keys(obj).forEach(key => {
+    if (obj[key] !== undefined) {
+      newObj[key] = cleanData(obj[key]);
     }
   });
   return newObj;
@@ -112,6 +120,7 @@ export const subscribeToCampaigns = (callback: (campaigns: Campaign[]) => void):
       return getSeconds(b.sentAt) - getSeconds(a.sentAt);
     });
 
+    callback(campaigns);
   });
 };
 
