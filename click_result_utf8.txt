@@ -1,0 +1,8 @@
+﻿--- Simulating for url='aHR0cHM6Ly93d3cucGhkb25hc3NvbG8uY29tL2xwL3NpbXVsYWRvci1wcmVjby1kdXBsYQ==%26c=s3f2xu10d%26e=cGRvbmFzc29sb0BnbWFpbC5jb20=/2/0110019c8a8369b6-40b03167-c9fb-4698-926f-7dfe219d9c67-000000/ZKXFD_F75cKryQ0DaVCEvSRSYvY=251' ---
+Step 1 (Unquote): aHR0cHM6Ly93d3cucGhkb25hc3NvbG8uY29tL2xwL3NpbXVsYWRvci1wcmVjby1kdXBsYQ==&c=s3f2xu10d&e=cGRvbmFzc29sb0BnbWFpbC5jb20=/2/0110019c8a8369b6-40b03167-c9fb-4698-926f-7dfe219d9c67-000000/ZKXFD_F75cKryQ0DaVCEvSRSYvY=251
+Step 2 (Split): target_enc=aHR0cHM6Ly93d3cucGhkb25hc3NvbG8uY29tL2xwL3NpbXVsYWRvci1wcmVjby1kdXBsYQ==
+  Found c_id: s3f2xu10d
+  Found email_enc: cGRvbmFzc29sb0BnbWFpbC5jb20=/2/0110019c8a8369b6-40b03167-c9fb-4698-926f-7dfe219d9c67-000000/ZKXFD_F75cKryQ0DaVCEvSRSYvY=251
+  Attempting B64 decode on: aHR0cHM6Ly93d3cucGhkb25hc3NvbG8uY29tL2xwL3NpbXVsYWRvci1wcmVjby1kdXBsYQ==
+  SUCCESS! Decoded: https://www.phdonassolo.com/lp/simulador-preco-dupla
+Step 4 (Match): FINAL URL = https://www.phdonassolo.com/lp/simulador-preco-dupla

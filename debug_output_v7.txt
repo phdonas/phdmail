@@ -1,0 +1,6 @@
+﻿ID: hlmsrgoac
+Name: Ponto de EquilÝbrio: o que Ú, para que serve e como calcular 23_02
+Sent: 2625
+Total: 2626
+Failed: 0
+ContactsLen: 2626

@@ -1,0 +1,45 @@
+﻿python : C:\Users\Lenovo\App
+Data\Local\Programs\Python\P
+ython312\Lib\site-packages\g
+oogle\cloud\firestore_v1\bas
+e_collection.py:316: 
+UserWarning: Detected 
+filter using positional 
+arguments. Prefer using the 
+'filter' keyword argument 
+instead.
+At line:1 char:1
++ python c:\Projetos\phdmail
+\inspect_links.py > 
+campaign_inspection.txt ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: (C:\Us  
+  ers\Lenovo...gument ins   
+ tead.:String) [], Remot    
+eException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+  return 
+query.where(field_path, 
+op_string, value)
+--- Searching for Campaign: 'Campanha LP 23/02 Simulador Preþo Margem' ---
+Found Campaign ID: x0499z995
+
+--- Links in Campaign Data ---
+Subject: Use o Simulador de Preþo e Margens para avaliar o preþo de venda do seu gßs. Grßtis - Academia do Gßs
+CTA URL: Acessehttps://www.phdonassolo.com/lp/simulador-preco-duplao simulador aqui
+Image Link: https://www.phdonassolo.com/lp/simulador-preco-dupla
+Footer Button URL: https://www.udemy.com/course/descomplicando-o-dre/?referralCode=EA71F9A22E8CEA6214C4
+Footer Link URL: https://www.phdonassolo.com
+Footer Image Link: www.phdonassolo.com
+
+Social Links: 0
+
+--- Raw Content Excerpt (first 500 chars) ---
+<p data-path-to-node="4" style="--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / 0.5); --tw-ring-offset-shadow: 0 0 #
+
+Links found in HTML body: 0

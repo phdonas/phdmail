@@ -1,0 +1,45 @@
+﻿python : C:\Users\Lenovo\App
+Data\Local\Programs\Python\P
+ython312\Lib\site-packages\g
+oogle\cloud\firestore_v1\bas
+e_collection.py:316: 
+UserWarning: Detected 
+filter using positional 
+arguments. Prefer using the 
+'filter' keyword argument 
+instead.
+At line:1 char:1
++ python c:\Projetos\phdmail
+\inspect_links.py > 
+campaign_inspection_v3. ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: (C:\Us  
+  ers\Lenovo...gument ins   
+ tead.:String) [], Remot    
+eException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+  return 
+query.where(field_path, 
+op_string, value)
+--- Searching for Campaign: 'teste de campanha agora ' ---
+Found Campaign ID: knv70pixm
+
+--- Links in Campaign Data ---
+Subject: teste
+CTA URL: https://www.phdonassolo.com/lp/simulador-preco-dupla
+Image Link: https://www.phdonassolo.com/lp/simulador-preco-dupla
+Footer Button URL: https://www.udemy.com/course/descomplicando-o-dre/?referralCode=EA71F9A22E8CEA6214C4
+Footer Link URL: https://www.phdonassolo.com/#/artigos
+Footer Image Link: www.phdonassolo.com
+
+Social Links: 0
+
+--- Raw Content Excerpt (first 500 chars) ---
+&nbsp;estou testando os links por que ficou tudo uma grande simulaþÒo&nbsp;<div><br></div><div>com falhas</div><div><br></div><div><br></div>
+
+Links found in HTML body: 0

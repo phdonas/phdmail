@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "phdmail-683eb"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

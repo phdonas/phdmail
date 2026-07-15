@@ -1,0 +1,29 @@
+# Tracking Logic using Cloud Functions
+# 
+# 1. Open Tracking:
+#    - Add /api/track/open?c={campaign_id}&e={email_encoded} image to email
+#    - When loaded, update campaign stats and contact stats
+#    - Return 1x1 transparent GIF
+#
+# 2. Click Tracking:
+#    - Replace links with /api/track/click?url={target_encoded}&c={campaign_id}&e={email_encoded}
+#    - Redirect user to target
+#    - Update stats
+
+import base64
+
+def generate_tracking_urls(base_url, campaign_id, email, target_url=None):
+    # Determine base URL for functions if not dynamic, use env or fixed
+    # We should pass the function URL dynamically.
+    email_enc = base64.urlsafe_b64encode(email.encode()).decode()
+    
+    tracking = {}
+    
+    # Open Pixel URL
+    tracking['open'] = f"{base_url}/track/open?c={campaign_id}&e={email_enc}"
+    
+    if target_url:
+        target_enc = base64.urlsafe_b64encode(target_url.encode()).decode()
+        tracking['click'] = f"{base_url}/track/click?url={target_enc}&c={campaign_id}&e={email_enc}"
+        
+    return tracking

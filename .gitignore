@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project specific
+backend/.env
+backend/serviceAccountKey.json
+functions/venv
+functions/__pycache__
+functions/.env
+# functions (commented out to allow deploy)

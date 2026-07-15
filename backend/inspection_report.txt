@@ -1,0 +1,46 @@
+=== INSPECIONANDO AS 5 ÚLTIMAS CAMPANHAS SALVAS ===
+
+ID: zrzog1lyk
+Nome: teste de envio sexta 19:00
+Status: sent
+sentAt: 2026-02-23 19:01:24.557000+00:00
+Contacts (Array Length): 6
+Sample Contact: pdonassolo@gmail.com
+Stats stored: Total=6, Sent=6, Failed=0
+----------------------------------------
+
+ID: x0499z995
+Nome: Campanha LP 23/02 Simulador Preço Margem
+Status: sent
+sentAt: 2026-02-23 14:36:20.112000+00:00
+Contacts (Array Length): 12
+Sample Contact: pdonassolo@gmail.com
+Stats stored: Total=N/A, Sent=N/A, Failed=N/A
+----------------------------------------
+
+ID: cw1oq8ru3
+Nome: Campanha DRE Sexta 20_02
+Status: sent
+sentAt: 2026-02-20 12:43:25.306000+00:00
+Contacts (Array Length): 2712
+Sample Contact: contato@academiadogas.com.br
+Stats stored: Total=2712, Sent=2712, Failed=0
+----------------------------------------
+
+ID: VyZydZmRu4bPTA2kDcfB
+Nome: Você conhece a Margem de Contribuição (Cópia)
+Status: sent
+sentAt: 2026-02-18 14:51:49.491000+00:00
+Contacts (Array Length): 2876
+Sample Contact: contato@academiadogas.com.br
+Stats stored: Total=N/A, Sent=N/A, Failed=N/A
+----------------------------------------
+
+ID: gLMw8X6tLJ8rS2W0mXLC
+Nome: Apresentação Descomplicando o Fluxo de Caixa
+Status: sent
+sentAt: 2026-02-11 07:37:33.608000+00:00
+Contacts (Array Length): 2876
+Sample Contact: contato@academiadogas.com.br
+Stats stored: Total=N/A, Sent=N/A, Failed=N/A
+----------------------------------------

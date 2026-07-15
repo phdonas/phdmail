@@ -1,0 +1,30 @@
+﻿python : C:\Users\Lenovo\App
+Data\Local\Programs\Python\P
+ython312\Lib\site-packages\g
+oogle\cloud\firestore_v1\bas
+e_collection.py:316: 
+UserWarning: Detected 
+filter using positional 
+arguments. Prefer using the 
+'filter' keyword argument 
+instead.
+At line:1 char:1
++ python c:\Projetos\phdmail
+\inspect_links.py > 
+campaign_inspection_v2. ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: (C:\Us  
+  ers\Lenovo...gument ins   
+ tead.:String) [], Remot    
+eException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+  return 
+query.where(field_path, 
+op_string, value)
+--- Searching for Campaign: 'teste de campanha agora' ---
+Campaign not found.

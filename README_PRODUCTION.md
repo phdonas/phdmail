@@ -1,54 +1,42 @@
-# Rodando em Produção (Teste Real)
+# 🚀 Como Testar em Produção Agora
 
-Como sua arquitetura é híbrida (Frontend na Nuvem + Backend Local), "rodar em produção" significa que o Frontend estará acessível na internet e o Backend processará os envios reais.
+Seu sistema está pronto! Siga este roteiro exato para enviar sua primeira campanha real.
 
-## 1. O Conceito
+## 1. Ligue os Motores (Backend)
+Vá até a pasta do projeto e clique duas vezes no arquivo `start_backend.bat`.
+-   Isso vai abrir duas janelas pretas (terminais) minimizadas.
+-   Uma é o **Worker** (que envia os e-mails).
+-   A outra é o **Orchestrator** (que vigia o banco de dados).
+-   **NÃO FECHE ESSAS JANELAS.**
 
--   **Frontend (React)**: Pode rodar localmente (`localhost`) OU ser hospedado no Firebase Hosting (URL pública). Ambos acessam o **mesmo** banco de dados de produção.
--   **Backend (Python)**: Roda na sua máquina (ou num servidor VPS futuro). Ele lê do banco de produção e envia emails reais via AWS.
-
-## 2. Passo a Passo para Teste Real
-
-### A. Iniciar o Backend (O "Motor" de Envio)
-Abra dois terminais na pasta `backend/`:
-
-**Terminal 1 (Fila de Processamento):**
-```bash
-celery -A celery_app worker --pool=solo --loglevel=info
-```
-*(Deixe rodando. Você verá logs quando e-mails forem enviados.)*
-
-**Terminal 2 (Orquestrador):**
-```bash
-python main.py
-```
-*(Deixe rodando. Ele buscará novas campanhas a cada 10 segundos.)*
-
-### B. Iniciar ou Deployar o Frontend (A "Interface")
-
-**Opção 1: Rodar Localmente (Mais Rápido)**
+## 2. Abra o Painel de Controle (Frontend)
+Abra um terminal na pasta do projeto e rode:
 ```bash
 npm run dev
 ```
-Acesse `http://localhost:5173`.
+Acesse o link que aparecer (geralmente `http://localhost:5173`).
 
-**Opção 2: Publicar na Internet (Firebase Hosting)**
-1.  Instale as ferramentas do Firebase (se não tiver): `npm install -g firebase-tools`
-2.  Faça login: `npx firebase login`
-3.  Inicialize (apenas na primeira vez): `npx firebase init hosting`
-    -   Public directory: `dist`
-    -   Single-page app: `Yes`
-4.  Faça o deploy:
-    ```bash
-    npm run build
-    npx firebase deploy
-    ```
-5.  O terminal mostrará a URL do seu site (ex: `https://seu-projeto.web.app`).
+## 3. Crie sua Lista de Teste (CSV)
+Crie um arquivo simples no Bloco de Notas chamado `teste.csv` com e-mails que você tem acesso (ex: seu pessoal, seu profissional, etc):
 
-### C. Testar o Envio
-1.  Acesse o frontend (Local ou Publicado).
-2.  Crie uma nova campanha.
-3.  **Importante**: Use e-mails reais seus para teste (ex: seu.email@gmail.com).
-4.  Clique em **Enviar**.
-5.  **Observe o Terminal do Celery**: Você verá as tarefas sendo processadas e os logs de sucesso da AWS SES.
-6.  Verifique sua caixa de entrada!
+```csv
+seu.email@gmail.com
+outro.email@hotmail.com
+```
+
+## 4. Dispare a Campanha
+1.  No site, clique em **Nova Campanha**.
+2.  Preencha:
+    -   **Nome**: Teste de Produção 01
+    -   **Assunto**: Olá do PHDMail (Teste AWS)
+    -   **Conteúdo**: Este é um teste real enviando via Amazon SES!
+3.  No passo **Público**, importe o seu arquivo `teste.csv`.
+4.  No passo **Revisão**, clique em **Confirmar e Enviar**.
+
+## 5. Acompanhe a Mágica
+Volte para as janelas pretas do backend.
+-   No **Orchestrator**, você verá: `Processing Campaign: Teste de Produção 01... Dispatched 2 tasks.`
+-   No **Worker**, você verá: `Email sent to seu.email@gmail.com: MessageId=...`
+
+## 6. Verifique sua Caixa de Entrada
+Os e-mails devem chegar em instantes. Verifique também a caixa de Spam (às vezes acontece no primeiro envio de domínio novo).

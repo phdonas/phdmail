@@ -1,26 +1,77 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Campaigns from './components/Campaigns';
 import Audience from './components/Audience';
 import CampaignWizard from './components/CampaignWizard';
-import { 
-  LayoutDashboard, 
-  Send, 
-  Users, 
-  BarChart3, 
+import Unsubscribe from './components/Unsubscribe';
+import Reports from './components/Reports';
+import {
+  LayoutDashboard,
+  Send,
+  Users,
+  BarChart3,
   Settings,
   Menu,
   X,
-  Sparkles
+  Sparkles,
+  Sun,
+  Moon
 } from 'lucide-react';
+import pkg from './package.json';
+
+// Theme Context Definition
+export const ThemeContext = createContext<{
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+}>({ theme: 'light', toggleTheme: () => {} });
+
+export const useTheme = () => useContext(ThemeContext);
+
+const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const stored = localStorage.getItem('theme');
+      if (stored === 'light' || stored === 'dark') return stored;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } catch (_) {
+      return 'light';
+    }
+  });
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem('theme', next);
+      } catch (_) {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
 
 const SidebarItem: React.FC<{ to: string; icon: React.ReactNode; label: string; active: boolean }> = ({ to, icon, label, active }) => (
-  <Link 
-    to={to} 
+  <Link
+    to={to}
     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-      active ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-600'
+      active
+        ? 'bg-brand-600 text-white shadow-md shadow-brand-600/10'
+        : 'text-slate-600 dark:text-slate-400 hover:bg-brand-50 dark:hover:bg-slate-800/50 hover:text-brand-600 dark:hover:text-brand-400'
     }`}
   >
     {icon}
@@ -28,65 +79,91 @@ const SidebarItem: React.FC<{ to: string; icon: React.ReactNode; label: string; 
   </Link>
 );
 
-const App: React.FC = () => {
+const DashboardLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <Router>
-      <div className="flex min-h-screen bg-slate-50">
-        {/* Mobile Toggle */}
-        <button 
-          className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg border"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+      {/* Mobile Toggle */}
+      <button
+        className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-full shadow-lg border border-slate-100 dark:border-slate-800"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+      >
+        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
 
-        {/* Sidebar */}
-        <aside className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform duration-300 ease-in-out lg:translate-x-0
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}>
-          <div className="h-full flex flex-col p-4">
-            <div className="flex items-center space-x-2 px-4 py-6 mb-4">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
-                <Send size={20} />
-              </div>
-              <span className="text-xl font-bold tracking-tight">GeminiMail</span>
+      {/* Sidebar */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="h-full flex flex-col p-4">
+          <div className="flex items-center space-x-2 px-4 py-6 mb-4">
+            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white">
+              <Send size={20} />
             </div>
+            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">PHDMail</span>
+          </div>
 
-            <nav className="flex-1 space-y-1">
-              <SidebarContent />
-            </nav>
+          <nav className="flex-1 space-y-1">
+            <SidebarContent />
+          </nav>
 
-            <div className="pt-4 border-t mt-auto">
-              <div className="bg-indigo-50 p-4 rounded-xl">
-                <div className="flex items-center space-x-2 text-indigo-700 mb-2">
-                  <Sparkles size={16} />
-                  <span className="text-sm font-semibold">IA Ativa</span>
-                </div>
-                <p className="text-xs text-indigo-600">O Gemini 3 Flash está pronto para ajudar na sua escrita.</p>
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-auto space-y-4">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-brand-600 dark:hover:text-brand-400 transition-colors text-sm font-medium"
+            >
+              <div className="flex items-center space-x-3">
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
               </div>
+            </button>
+
+            <div className="bg-brand-50 dark:bg-slate-800/40 p-4 rounded-xl">
+              <div className="flex items-center space-x-2 text-brand-700 dark:text-brand-400 mb-2">
+                <Sparkles size={16} />
+                <span className="text-sm font-semibold">IA Ativa</span>
+              </div>
+              <p className="text-xs text-brand-600 dark:text-slate-400">O Gemini 3 Flash está pronto para ajudar na sua escrita.</p>
+            </div>
+            <div className="px-4">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">v{pkg.version}</span>
             </div>
           </div>
-        </aside>
+        </div>
+      </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8">
-          <div className="max-w-6xl mx-auto">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/campaigns" element={<Campaigns />} />
-              <Route path="/campaigns/new" element={<CampaignWizard />} />
-              <Route path="/campaigns/edit/:id" element={<CampaignWizard />} />
-              <Route path="/audience" element={<Audience />} />
-              <Route path="/reports" element={<div className="p-8 text-center bg-white rounded-2xl border border-dashed text-slate-500">Módulo de Relatórios em breve</div>} />
-              <Route path="/settings" element={<div className="p-8 text-center bg-white rounded-2xl border border-dashed text-slate-500">Configurações em breve</div>} />
-            </Routes>
-          </div>
-        </main>
-      </div>
-    </Router>
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64 p-4 lg:p-8">
+        <div className="max-w-6xl mx-auto">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/campaigns" element={<Campaigns />} />
+            <Route path="/campaigns/new" element={<CampaignWizard />} />
+            <Route path="/campaigns/edit/:id" element={<CampaignWizard />} />
+            <Route path="/audience" element={<Audience />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<div className="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 border-dashed text-slate-500">Configurações em breve</div>} />
+          </Routes>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
+          <Route path="/*" element={<DashboardLayout />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 };
 

@@ -6,10 +6,13 @@ import {
   getDoc,
   addDoc,
   updateDoc,
+  setDoc,
   deleteDoc,
   doc,
   query,
-  orderBy
+  orderBy,
+  onSnapshot,
+  Unsubscribe
 } from 'firebase/firestore';
 import { Campaign } from '../types';
 
@@ -34,9 +37,24 @@ export const getCampaignById = async (id: string): Promise<Campaign | undefined>
   return undefined;
 };
 
+// Helper to remove undefined fields which Firestore rejects
+const cleanData = (obj: Record<string, any>) => {
+  const newObj = { ...obj };
+  Object.keys(newObj).forEach(key => {
+    if (newObj[key] === undefined) {
+      delete newObj[key];
+    }
+  });
+  return newObj;
+};
+
 export const createCampaign = async (campaign: Omit<Campaign, 'id'>): Promise<Campaign> => {
   const campaignsCol = collection(db, CAMPAIGNS_COLLECTION);
-  const docRef = await addDoc(campaignsCol, campaign);
+  const dataToSave = cleanData({
+    ...campaign,
+    createdAt: new Date().toISOString()
+  });
+  const docRef = await addDoc(campaignsCol, dataToSave);
   return { ...campaign, id: docRef.id };
 };
 
@@ -44,7 +62,8 @@ export const updateCampaign = async (campaign: Campaign) => {
   const docRef = doc(db, CAMPAIGNS_COLLECTION, campaign.id);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, ...data } = campaign;
-  await updateDoc(docRef, data);
+  const dataToSave = cleanData(data);
+  await setDoc(docRef, dataToSave, { merge: true });
 };
 
 export const deleteCampaign = async (id: string) => {
@@ -61,7 +80,43 @@ export const cloneCampaign = async (campaign: Campaign) => {
     status: 'draft',
     sentAt: undefined,
     stats: undefined,
+    sentCount: 0,
+    failedCount: 0,
+    totalRecipients: 0,
+    failedResults: []
   };
   // @ts-ignore - status is explicitly set to 'draft' which matches CampaignStatus
   return await createCampaign(newCampaignData);
+};
+
+export const subscribeToCampaigns = (callback: (campaigns: Campaign[]) => void): Unsubscribe => {
+  const campaignsCol = collection(db, CAMPAIGNS_COLLECTION);
+  // Remove orderBy causing draft exclusion
+  const q = query(campaignsCol);
+
+  return onSnapshot(q, (snapshot) => {
+    const campaigns = snapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id
+    } as Campaign));
+
+    // Sort client-side: Drafts (no sentAt) first, then by date descending
+    campaigns.sort((a, b) => {
+      const getSeconds = (date: any) => {
+        if (!date) return Number.MAX_SAFE_INTEGER;
+        if (date.seconds) return date.seconds;
+        // Fallback if somehow string or Date object
+        if (typeof date === 'string') return new Date(date).getTime() / 1000;
+        return 0;
+      };
+      return getSeconds(b.sentAt) - getSeconds(a.sentAt);
+    });
+
+  });
+};
+
+export const getCampaignClicks = async (campaignId: string): Promise<Array<{ email: string; url: string; clickedAt: any }>> => {
+  const clicksCol = collection(db, CAMPAIGNS_COLLECTION, campaignId, 'clicks');
+  const snap = await getDocs(clicksCol);
+  return snap.docs.map(doc => doc.data() as any);
 };

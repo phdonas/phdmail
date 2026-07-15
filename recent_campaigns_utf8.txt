@@ -1,0 +1,6 @@
+﻿--- Listing Recent Campaigns ---
+ID: knv70pixm | Name: 'teste de campanha agora ' | Status: sent
+ID: x0499z995 | Name: 'Campanha LP 23/02 Simulador Preþo Margem' | Status: sent
+ID: cw1oq8ru3 | Name: 'Campanha DRE Sexta 20_02' | Status: sent
+ID: b560iains | Name: 'VocÛ conhece a Margem de ContribuiþÒo envio sexta' | Status: sent
+ID: VyZydZmRu4bPTA2kDcfB | Name: 'VocÛ conhece a Margem de ContribuiþÒo (C¾pia)' | Status: sent

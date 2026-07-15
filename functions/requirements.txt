@@ -1,0 +1,7 @@
+
+# Cloud Functions for Firebase
+firebase-functions
+firebase-admin
+boto3
+python-dotenv
+google-cloud-firestore
