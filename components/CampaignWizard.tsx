@@ -4,7 +4,7 @@ import {
   ChevronRight, ChevronLeft, Sparkles, Wand2, Send, Save, Eye, Loader2,
   Info, Upload, CheckCircle2, AlertTriangle, Edit3, Image as ImageIcon,
   Link as LinkIcon, Facebook, Instagram, Linkedin, Twitter, Youtube, Plus, Trash2, Check, ShieldAlert,
-  Laptop, Smartphone, Calendar, AlertCircle
+  Laptop, Smartphone, Calendar, AlertCircle, Users, Mail
 } from 'lucide-react';
 import { 
   generateEmailContent, 
