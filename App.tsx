@@ -70,8 +70,8 @@ const SidebarItem: React.FC<{ to: string; icon: React.ReactNode; label: string; 
     to={to}
     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
       active
-        ? 'bg-brand-600 text-white shadow-md shadow-brand-600/10'
-        : 'text-slate-600 dark:text-slate-400 hover:bg-brand-50 dark:hover:bg-slate-800/50 hover:text-brand-600 dark:hover:text-brand-400'
+        ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20'
+        : 'text-slate-350 hover:bg-navy-800/60 hover:text-white'
     }`}
   >
     {icon}
@@ -84,37 +84,37 @@ const DashboardLayout: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="flex min-h-screen bg-brand-100 dark:bg-navy-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Mobile Toggle */}
       <button
-        className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-full shadow-lg border border-slate-100 dark:border-slate-800"
+        className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-navy-900 text-slate-100 rounded-full shadow-lg border border-navy-800"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       >
         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
-      {/* Sidebar */}
+      {/* Sidebar - Always Dark Navy for Premium look */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0
+        fixed inset-y-0 left-0 z-40 w-64 bg-navy-900 border-r border-navy-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="h-full flex flex-col p-4">
-          <div className="flex items-center space-x-2 px-4 py-6 mb-4">
-            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white">
-              <Send size={20} />
+          <div className="flex items-center space-x-2.5 px-4 py-6 mb-4">
+            <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white">
+              <Send size={18} className="text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">PHDMail</span>
+            <span className="text-2xl font-serif font-bold tracking-wider text-brand-500">PHDMail</span>
           </div>
 
           <nav className="flex-1 space-y-1">
             <SidebarContent />
           </nav>
 
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-auto space-y-4">
+          <div className="pt-4 border-t border-navy-800 mt-auto space-y-4">
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-brand-600 dark:hover:text-brand-400 transition-colors text-sm font-medium"
+              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-slate-350 hover:bg-navy-800/60 hover:text-white transition-colors text-sm font-medium"
             >
               <div className="flex items-center space-x-3">
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -122,15 +122,15 @@ const DashboardLayout: React.FC = () => {
               </div>
             </button>
 
-            <div className="bg-brand-50 dark:bg-slate-800/40 p-4 rounded-xl">
-              <div className="flex items-center space-x-2 text-brand-700 dark:text-brand-400 mb-2">
+            <div className="bg-navy-850/60 border border-navy-800 p-4 rounded-xl">
+              <div className="flex items-center space-x-2 text-brand-500 mb-2">
                 <Sparkles size={16} />
                 <span className="text-sm font-semibold">IA Ativa</span>
               </div>
-              <p className="text-xs text-brand-600 dark:text-slate-400">O Gemini 3 Flash está pronto para ajudar na sua escrita.</p>
+              <p className="text-xs text-slate-400">O Gemini 3 Flash está pronto para ajudar na sua escrita.</p>
             </div>
             <div className="px-4">
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">v{pkg.version}</span>
+              <span className="text-[10px] text-slate-500 font-mono">v{pkg.version}</span>
             </div>
           </div>
         </div>

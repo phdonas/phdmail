@@ -17,7 +17,7 @@ const Audience: React.FC = () => {
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Público</h1>
+          <h1 className="text-4xl font-serif font-bold tracking-wide text-slate-900 dark:text-white">Público</h1>
           <p className="text-slate-500 dark:text-slate-400">Gerencie seus inscritos e lista de clientes.</p>
         </div>
         <div className="flex space-x-3">
@@ -25,7 +25,7 @@ const Audience: React.FC = () => {
             <Download size={18} />
             <span>Exportar CSV</span>
           </button>
-          <button className="bg-brand-600 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center space-x-2 shadow-lg shadow-brand-500/10 hover:bg-brand-700 transition-all">
+          <button className="bg-brand-500 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center space-x-2 shadow-lg shadow-brand-500/10 hover:bg-brand-600 transition-all">
             <UserPlus size={20} />
             <span>Adicionar Contato</span>
           </button>
@@ -33,28 +33,28 @@ const Audience: React.FC = () => {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100/80 dark:border-slate-850 shadow-sm">
           <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Inscritos</p>
           <p className="text-3xl font-bold text-slate-900 dark:text-white">12.104</p>
           <div className="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-            <div className="bg-emerald-500 h-full w-[94%]"></div>
+            <div className="bg-brand-500 h-full w-[94%]"></div>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100/80 dark:border-slate-850 shadow-sm">
           <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Descadastrados</p>
           <p className="text-3xl font-bold text-slate-900 dark:text-white">738</p>
           <div className="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
             <div className="bg-rose-500 h-full w-[6%]"></div>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100/80 dark:border-slate-850 shadow-sm">
           <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Taxa de Crescimento</p>
           <p className="text-3xl font-bold text-slate-900 dark:text-white">+4,2%</p>
           <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-2">vs último mês</p>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100/80 dark:border-slate-850 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -71,7 +71,7 @@ const Audience: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+              <tr className="bg-brand-50/50 dark:bg-navy-900/40 text-slate-700 dark:text-slate-350 text-xs font-serif font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                 <th className="px-6 py-4">Contato</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Tags</th>
@@ -81,10 +81,10 @@ const Audience: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
               {mockContacts.map((contact) => (
-                <tr key={contact.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors group">
+                <tr key={contact.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-slate-850 text-brand-700 dark:text-brand-400 flex items-center justify-center font-bold mr-3 shadow-inner">
+                      <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-navy-900 text-brand-700 dark:text-brand-400 flex items-center justify-center font-bold mr-3 shadow-inner">
                         {contact.firstName[0]}{contact.lastName[0]}
                       </div>
                       <div>

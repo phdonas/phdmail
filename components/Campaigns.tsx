@@ -107,12 +107,12 @@ const Campaigns: React.FC = () => {
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Campanhas</h1>
+          <h1 className="text-4xl font-serif font-bold tracking-wide text-slate-900 dark:text-white">Campanhas</h1>
           <p className="text-slate-500 dark:text-slate-400">Crie e gerencie suas campanhas de e-mail marketing.</p>
         </div>
         <Link
           to="/campaigns/new"
-          className="bg-brand-600 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center space-x-2 shadow-lg shadow-brand-500/10 hover:bg-brand-700 transition-all"
+          className="bg-brand-500 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center space-x-2 shadow-lg shadow-brand-500/10 hover:bg-brand-600 transition-all"
         >
           <Plus size={20} />
           <span>Nova Campanha</span>
@@ -161,7 +161,7 @@ const Campaigns: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+              <tr className="bg-brand-50/50 dark:bg-navy-900/40 text-slate-700 dark:text-slate-350 text-xs font-serif font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                 <th className="px-6 py-4">Nome da Campanha</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Público</th>
@@ -172,10 +172,10 @@ const Campaigns: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
               {filteredCampaigns.map((campaign) => (
-                <tr key={campaign.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-905/30 transition-colors group">
+                <tr key={campaign.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors group">
                   <td className="px-6 py-5">
                     <div>
-                      <div className="font-semibold text-slate-900 dark:text-white flex items-center group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors cursor-pointer">
+                      <div className="font-semibold text-slate-900 dark:text-white flex items-center group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors cursor-pointer">
                         {campaign.name || 'Sem nome'}
                       </div>
                       <div className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 line-clamp-1">
@@ -198,7 +198,7 @@ const Campaigns: React.FC = () => {
                           </div>
                           <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                             <div
-                              className="bg-brand-600 h-1.5 rounded-full transition-all duration-500 ease-out"
+                               className="bg-brand-500 h-1.5 rounded-full transition-all duration-500 ease-out"
                               style={{ width: `${Math.min(100, (((campaign.sentCount || 0) + (campaign.failedCount || 0)) / (campaign.totalRecipients || 1)) * 100)}%` }}
                             ></div>
                           </div>

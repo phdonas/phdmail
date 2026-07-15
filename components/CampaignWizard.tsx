@@ -1511,7 +1511,7 @@ const CampaignWizard: React.FC = () => {
                 }}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
                     step === s 
-                      ? 'bg-brand-600 text-white ring-4 ring-brand-500/20' 
+                      ? 'bg-brand-500 text-white ring-4 ring-brand-500/20' 
                       : ['details', 'content', 'audience', 'review'].indexOf(step) > i 
                         ? 'bg-emerald-500 text-white' 
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
@@ -1519,7 +1519,7 @@ const CampaignWizard: React.FC = () => {
                     {['details', 'content', 'audience', 'review'].indexOf(step) > i ? <Check size={14} /> : i + 1}
                   </div>
                   <span className={`text-[10px] font-semibold uppercase tracking-wider mt-1.5 ${
-                    step === s ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500'
+                    step === s ? 'text-brand-500 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500'
                   }`}>
                     {stepLabels[s]}
                   </span>
@@ -1534,7 +1534,7 @@ const CampaignWizard: React.FC = () => {
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-colors">
         {loading && (
           <div className="bg-slate-500/10 backdrop-blur-sm absolute inset-0 z-30 flex flex-col items-center justify-center space-y-4">
-            <Loader2 className="animate-spin text-brand-600 w-12 h-12" />
+            <Loader2 className="animate-spin text-brand-500 w-12 h-12" />
             <p className="font-semibold text-slate-700 dark:text-slate-300">{sendingStatus}</p>
           </div>
         )}
@@ -1543,9 +1543,9 @@ const CampaignWizard: React.FC = () => {
           {/* STEP 1: DETAILS */}
           {step === 'details' && (
             <div className="space-y-6 animate-in fade-in duration-300 max-w-2xl mx-auto">
-              <div className="flex items-center space-x-2 text-brand-600 dark:text-brand-400 mb-2">
+              <div className="flex items-center space-x-2 text-brand-500 dark:text-brand-400 mb-2">
                 {id ? <Edit3 size={18} /> : <Info size={18} />}
-                <h2 className="text-xl font-bold">{id ? 'Editar Configurações da Campanha' : 'Configurações de Campanha'}</h2>
+                <h2 className="text-xl font-serif font-bold text-slate-900 dark:text-white">{id ? 'Editar Configurações da Campanha' : 'Configurações de Campanha'}</h2>
               </div>
 
               <div className="space-y-6">
@@ -1650,7 +1650,7 @@ const CampaignWizard: React.FC = () => {
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-950 dark:text-white">Design & Conteúdo do E-mail</h2>
+                  <h2 className="text-xl font-serif font-bold text-slate-900 dark:text-white">Design & Conteúdo do E-mail</h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Escreva seu e-mail ou utilize o Gemini para criar a cópia automaticamente.</p>
                 </div>
                 
@@ -2552,9 +2552,9 @@ const CampaignWizard: React.FC = () => {
           {/* STEP 3: AUDIENCE & CONTACT SEGMENTATION */}
           {step === 'audience' && (
             <div className="space-y-6 animate-in fade-in duration-300 max-w-2xl mx-auto">
-              <div className="flex items-center space-x-2 text-brand-600 dark:text-brand-400 mb-2">
+              <div className="flex items-center space-x-2 text-brand-500 dark:text-brand-400 mb-2">
                 <Users size={18} />
-                <h2 className="text-xl font-bold">Configuração de Destinatários</h2>
+                <h2 className="text-xl font-serif font-bold text-slate-900 dark:text-white">Configuração de Destinatários</h2>
               </div>
 
               <div className="space-y-6">
@@ -2696,9 +2696,9 @@ const CampaignWizard: React.FC = () => {
           {/* STEP 4: REVIEW & DISPATCH */}
           {step === 'review' && (
             <div className="space-y-6 animate-in fade-in duration-300 max-w-2xl mx-auto">
-              <div className="flex items-center space-x-2 text-brand-600 dark:text-brand-400 mb-2">
+              <div className="flex items-center space-x-2 text-brand-500 dark:text-brand-400 mb-2">
                 <Eye size={20} />
-                <h2 className="text-xl font-bold">Revisão e Confirmação</h2>
+                <h2 className="text-xl font-serif font-bold text-slate-900 dark:text-white">Revisão e Confirmação</h2>
               </div>
 
               {/* Review card */}
@@ -2864,7 +2864,7 @@ const CampaignWizard: React.FC = () => {
               type="button"
               onClick={handleSend}
               disabled={loading || previewCount === 0}
-              className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-brand-550/10 transition-colors disabled:opacity-50"
+              className="flex items-center space-x-2 bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-brand-500/10 transition-colors disabled:opacity-50"
             >
               <Send size={16} />
               <span>{scheduleType === 'scheduled' ? 'Agendar Disparo' : 'Disparar Agora'}</span>
@@ -2874,7 +2874,7 @@ const CampaignWizard: React.FC = () => {
               type="button"
               onClick={nextStep}
               disabled={step === 'details' && !formData.name}
-              className="flex items-center space-x-1 bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-brand-550/10 disabled:opacity-50 transition-colors"
+              className="flex items-center space-x-1 bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-brand-500/10 disabled:opacity-50 transition-colors"
             >
               <span>Próximo</span>
               <ChevronRight size={16} />

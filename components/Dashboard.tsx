@@ -111,20 +111,20 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8 animate-in fade-in duration-500">
       <header className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Painel Geral</h1>
+          <h1 className="text-4xl font-serif font-bold tracking-wide text-slate-900 dark:text-white">Painel Geral</h1>
           <p className="text-slate-500 dark:text-slate-400">Bem-vindo de volta! Veja o que está acontecendo hoje.</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center space-x-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+        <div className="bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center space-x-2 text-sm font-medium text-slate-650 dark:text-slate-350">
           <span>Últimos 30 Dias</span>
-          <TrendingUp size={16} />
+          <TrendingUp size={16} className="text-brand-500" />
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total de Contatos" value={stats.totalSubscribers.toLocaleString()} icon={<Users />} color="bg-brand-600" />
-        <StatCard title="Taxa de Abertura" value={`${stats.openRate.toFixed(1)}%`} icon={<MailOpen />} color="bg-amber-500" />
-        <StatCard title="Taxa de Cliques" value={`${stats.clickRate.toFixed(1)}%`} icon={<MousePointer2 />} color="bg-rose-500" />
-        <StatCard title="Campanhas Enviadas" value={stats.campaignsSent.toString()} icon={<Send />} color="bg-emerald-500" />
+        <StatCard title="Total de Contatos" value={stats.totalSubscribers.toLocaleString()} icon={<Users />} color="bg-brand-500" />
+        <StatCard title="Taxa de Abertura" value={`${stats.openRate.toFixed(1)}%`} icon={<MailOpen />} color="bg-brand-500" />
+        <StatCard title="Taxa de Cliques" value={`${stats.clickRate.toFixed(1)}%`} icon={<MousePointer2 />} color="bg-brand-500" />
+        <StatCard title="Campanhas Enviadas" value={stats.campaignsSent.toString()} icon={<Send />} color="bg-brand-500" />
       </div>
 
       {stats.totalFailures > 0 && (
@@ -138,9 +138,9 @@ const Dashboard: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100/85 dark:border-slate-850 shadow-sm">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Desempenho Recente</h3>
+            <h3 className="text-xl font-serif font-semibold text-slate-900 dark:text-white">Desempenho Recente</h3>
             <div className="flex space-x-2">
               <span className="flex items-center text-xs text-slate-500 dark:text-slate-400">
                 <div className="w-3 h-3 bg-brand-500 rounded-full mr-1"></div> Aberturas
@@ -152,8 +152,8 @@ const Dashboard: React.FC = () => {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorSub" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={isDark ? 0.2 : 0.1} />
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#a87828" stopOpacity={isDark ? 0.2 : 0.1} />
+                    <stop offset="95%" stopColor="#a87828" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
@@ -168,14 +168,14 @@ const Dashboard: React.FC = () => {
                   }}
                   labelStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
                 />
-                <Area type="monotone" dataKey="opens" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorSub)" strokeWidth={3} />
+                <Area type="monotone" dataKey="opens" stroke="#a87828" fillOpacity={1} fill="url(#colorSub)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Atividades Recentes</h3>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100/85 dark:border-slate-850 shadow-sm">
+          <h3 className="text-xl font-serif font-semibold text-slate-900 dark:text-white mb-6">Atividades Recentes</h3>
           <div className="space-y-6">
             {recentActivity.length > 0 ? recentActivity.map((activity, i) => (
               <div key={i} className="flex space-x-4">

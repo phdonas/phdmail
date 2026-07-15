@@ -119,9 +119,9 @@ const Reports: React.FC = () => {
     const failures = camp.failedResults?.length || 0;
     
     return [
-      { name: 'Cliques', value: clicks, color: '#f43f5e' },
-      { name: 'Aberturas (Sem cliques)', value: Math.max(0, opens - clicks), color: '#fbbf24' },
-      { name: 'Não Abertos', value: rest, color: isDark ? '#334155' : '#e2e8f0' },
+      { name: 'Cliques', value: clicks, color: '#a87828' },
+      { name: 'Aberturas (Sem cliques)', value: Math.max(0, opens - clicks), color: '#c59d74' },
+      { name: 'Não Abertos', value: rest, color: isDark ? '#3e4260' : '#e9eaf0' },
       { name: 'Falhas', value: failures, color: '#ef4444' }
     ].filter(d => d.value > 0);
   };
@@ -129,7 +129,7 @@ const Reports: React.FC = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <RefreshCw className="animate-spin text-brand-600 w-10 h-10" />
+        <RefreshCw className="animate-spin text-brand-500 w-10 h-10" />
         <p className="text-slate-500 dark:text-slate-400 font-medium">Carregando relatórios...</p>
       </div>
     );
@@ -140,8 +140,8 @@ const Reports: React.FC = () => {
       {/* Header */}
       <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-100 dark:border-slate-800/80 pb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center">
-            <BarChart3 className="mr-2 text-brand-600" />
+          <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white flex items-center">
+            <BarChart3 className="mr-2 text-brand-500" />
             Relatórios e Métricas
           </h1>
           <p className="text-slate-500 dark:text-slate-400">Acompanhe a entregabilidade e engajamento das suas campanhas.</p>
@@ -205,18 +205,18 @@ const Reports: React.FC = () => {
 
           {/* Historical Chart */}
           <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-950 dark:text-white mb-6">Desempenho Geral de Campanhas</h3>
+            <h3 className="text-xl font-serif font-semibold text-slate-950 dark:text-white mb-6">Desempenho Geral de Campanhas</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorOpens" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#fbbf24" stopOpacity={isDark ? 0.2 : 0.1} />
-                      <stop offset="95%" stopColor="#fbbf24" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#a87828" stopOpacity={isDark ? 0.2 : 0.1} />
+                      <stop offset="95%" stopColor="#a87828" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f43f5e" stopOpacity={isDark ? 0.2 : 0.1} />
-                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#c59d74" stopOpacity={isDark ? 0.2 : 0.1} />
+                      <stop offset="95%" stopColor="#c59d74" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
@@ -231,8 +231,8 @@ const Reports: React.FC = () => {
                     }}
                     labelStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
                   />
-                  <Area type="monotone" name="Aberturas" dataKey="aberturas" stroke="#fbbf24" fillOpacity={1} fill="url(#colorOpens)" strokeWidth={2.5} />
-                  <Area type="monotone" name="Cliques" dataKey="cliques" stroke="#f43f5e" fillOpacity={1} fill="url(#colorClicks)" strokeWidth={2.5} />
+                  <Area type="monotone" name="Aberturas" dataKey="aberturas" stroke="#a87828" fillOpacity={1} fill="url(#colorOpens)" strokeWidth={2.5} />
+                  <Area type="monotone" name="Cliques" dataKey="cliques" stroke="#c59d74" fillOpacity={1} fill="url(#colorClicks)" strokeWidth={2.5} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -241,12 +241,12 @@ const Reports: React.FC = () => {
           {/* List of Sent Campaigns */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm overflow-hidden">
             <div className="p-5 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-semibold text-lg text-slate-950 dark:text-white">Resumo Histórico</h3>
+              <h3 className="font-serif font-semibold text-lg text-slate-950 dark:text-white">Resumo Histórico</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+                  <tr className="bg-brand-50/50 dark:bg-navy-900/40 text-slate-700 dark:text-slate-350 text-xs font-serif font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                     <th className="px-6 py-4">Nome</th>
                     <th className="px-6 py-4">Data Envio</th>
                     <th className="px-6 py-4">Total</th>
@@ -315,7 +315,7 @@ const Reports: React.FC = () => {
                 <span className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full border bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50">
                   {selectedCampaign.status === 'sent' ? 'Enviada' : 'Enviando...'}
                 </span>
-                <h2 className="text-2xl font-bold mt-2 text-slate-900 dark:text-white">{selectedCampaign.name}</h2>
+                <h2 className="text-2xl font-serif font-bold mt-2 text-slate-900 dark:text-white">{selectedCampaign.name}</h2>
                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Assunto: {selectedCampaign.subject}</p>
                 <span className="text-xs text-slate-400 dark:text-slate-500 block mt-2">Disparada em: {formatDate(selectedCampaign.sentAt)}</span>
               </div>
@@ -341,7 +341,7 @@ const Reports: React.FC = () => {
               </div>
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm text-slate-900 dark:text-white">
                 <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Aberturas Únicas</span>
-                <p className="text-3xl font-bold mt-2 text-amber-500 text-slate-900 dark:text-white">
+                <p className="text-3xl font-bold mt-2 text-brand-500">
                   {selectedCampaign.stats?.opens || 0}
                 </p>
                 <span className="text-xs text-slate-400 block mt-2">
@@ -350,7 +350,7 @@ const Reports: React.FC = () => {
               </div>
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm text-slate-900 dark:text-white">
                 <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Cliques Totais</span>
-                <p className="text-3xl font-bold mt-2 text-rose-500">
+                <p className="text-3xl font-bold mt-2 text-brand-500">
                   {selectedCampaign.stats?.clicks || 0}
                 </p>
                 <span className="text-xs text-slate-400 block mt-2">
@@ -370,9 +370,8 @@ const Reports: React.FC = () => {
 
             {/* Chart and distribution row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Engagement Pie Chart */}
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm flex flex-col justify-between">
-                <h3 className="font-semibold text-lg mb-4 text-slate-950 dark:text-white">Distribuição de Engajamento</h3>
+                <h3 className="font-serif font-semibold text-lg mb-4 text-slate-950 dark:text-white">Distribuição de Engajamento</h3>
                 
                 {selectedCampaign.recipientsCount > 0 ? (
                   <>
@@ -421,8 +420,8 @@ const Reports: React.FC = () => {
 
               {/* Click Map (Link Analysis) */}
               <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-850 shadow-sm">
-                <h3 className="font-semibold text-lg mb-6 text-slate-950 dark:text-white flex items-center">
-                  <ExternalLink size={18} className="mr-2 text-rose-500" />
+                <h3 className="font-serif font-semibold text-lg mb-6 text-slate-950 dark:text-white flex items-center">
+                  <ExternalLink size={18} className="mr-2 text-brand-500" />
                   Click Map (Análise de Links)
                 </h3>
                 
@@ -446,7 +445,7 @@ const Reports: React.FC = () => {
                             </span>
                           </div>
                           <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div className="bg-rose-500 h-full" style={{ width: `${pct}%` }}></div>
+                            <div className="bg-brand-500 h-full" style={{ width: `${pct}%` }}></div>
                           </div>
                         </div>
                       );
