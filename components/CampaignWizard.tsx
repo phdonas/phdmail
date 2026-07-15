@@ -1320,6 +1320,7 @@ const CampaignWizard: React.FC = () => {
       navigate('/campaigns');
     } catch (error) {
       console.error("Erro CRÍTICO ao processar campanha:", error);
+      console.error("Erro CRÍTICO detalhado:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
       alert(`Erro ao salvar campanha: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);

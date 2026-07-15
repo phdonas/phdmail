@@ -67,18 +67,23 @@ export const createCampaign = async (campaign: Omit<Campaign, 'id'>): Promise<Ca
 };
 
 export const updateCampaign = async (campaign: Campaign) => {
-  const docRef = doc(db, CAMPAIGNS_COLLECTION, campaign.id);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, ...data } = campaign;
-  const dataToSave = cleanData(data);
-  
-  // Wrap setDoc in a Promise.race with an 8-second timeout to prevent silent hanging
-  const writePromise = setDoc(docRef, dataToSave, { merge: true });
-  const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error("Tempo limite excedido ao salvar dados no Firestore (Timeout de 8s). Isso pode ser causado por bloqueadores de conteúdo/AdBlockers ou instabilidade na conexão.")), 8000)
-  );
+  try {
+    const docRef = doc(db, CAMPAIGNS_COLLECTION, campaign.id);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = campaign;
+    const dataToSave = cleanData(data);
+    
+    // Wrap setDoc in a Promise.race with an 8-second timeout to prevent silent hanging
+    const writePromise = setDoc(docRef, dataToSave, { merge: true });
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Tempo limite excedido ao salvar dados no Firestore (Timeout de 8s). Isso pode ser causado por bloqueadores de conteúdo/AdBlockers ou instabilidade na conexão.")), 8000)
+    );
 
-  await Promise.race([writePromise, timeoutPromise]);
+    await Promise.race([writePromise, timeoutPromise]);
+  } catch (error) {
+    console.error("Erro no updateCampaign:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    throw error;
+  }
 };
 
 export const deleteCampaign = async (id: string) => {
