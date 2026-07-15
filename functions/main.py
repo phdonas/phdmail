@@ -211,15 +211,20 @@ def send_email_ses(recipient_email, subject, context, campaign_id):
         print(f"Error sending to {recipient_email}: {e}")
         return False
 
-@firestore_fn.on_document_updated(document="campaigns/{campaignId}", timeout_sec=540, memory=512)
+@firestore_fn.on_document_written(document="campaigns/{campaignId}", timeout_sec=540, memory=512)
 def process_campaign(event: firestore_fn.Event[firestore_fn.Change[firestore_fn.DocumentSnapshot]]) -> None:
-    db = firestore.client()
-    before_data = event.data.before.to_dict()
-    after_data = event.data.after.to_dict()
-    campaign_id = event.params["campaignId"]
-
-    if not after_data:
+    if not event.data:
         return
+    db = firestore.client()
+    before_snap = event.data.before
+    after_snap = event.data.after
+    
+    if not after_snap or not after_snap.exists:
+        return
+        
+    before_data = before_snap.to_dict() if before_snap and before_snap.exists else {}
+    after_data = after_snap.to_dict()
+    campaign_id = event.params["campaignId"]
 
     status_before = before_data.get('status')
     status_after = after_data.get('status')
