@@ -42,6 +42,7 @@ const Campaigns: React.FC = () => {
         setCampaigns(data);
       } catch (error) {
         console.error("Failed to fetch campaigns", error);
+        alert("Erro ao carregar lista de campanhas: " + (error instanceof Error ? error.message : String(error)));
       }
     };
 
@@ -85,11 +86,15 @@ const Campaigns: React.FC = () => {
       } else if (sortField === 'status') {
         comparison = (a.status || '').localeCompare(b.status || '');
       } else if (sortField === 'createdAt') {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        const fallbackA = dateA === 0 && a.sentAt ? (typeof a.sentAt === 'object' ? (a.sentAt as any).seconds * 1000 : new Date(a.sentAt).getTime()) : dateA;
-        const fallbackB = dateB === 0 && b.sentAt ? (typeof b.sentAt === 'object' ? (b.sentAt as any).seconds * 1000 : new Date(b.sentAt).getTime()) : dateB;
-        comparison = fallbackA - fallbackB;
+        const getTimestamp = (date: any) => {
+          if (!date) return 0;
+          if (typeof date === 'object' && (date as any).seconds) return (date as any).seconds * 1000;
+          const t = new Date(date).getTime();
+          return isNaN(t) ? 0 : t;
+        };
+        const valA = getTimestamp(a.createdAt || a.sentAt);
+        const valB = getTimestamp(b.createdAt || b.sentAt);
+        comparison = valA - valB;
       }
       return sortOrder === 'asc' ? comparison : -comparison;
     });

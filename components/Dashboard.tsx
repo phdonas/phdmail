@@ -27,6 +27,7 @@ const StatCard: React.FC<{ title: string; value: string; trend?: string; icon: R
 
 const Dashboard: React.FC = () => {
   const { theme } = useTheme();
+  const [daysFilter, setDaysFilter] = useState<number>(30);
   const [stats, setStats] = useState({
     totalSubscribers: 0,
     openRate: 0,
@@ -40,66 +41,85 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [campaigns, contacts] = await Promise.all([getCampaigns(), getContacts()]);
+      try {
+        const [cData, conData] = await Promise.all([getCampaigns(), getContacts()]);
+        
+        // Filter by date
+        const filterDate = new Date();
+        filterDate.setDate(filterDate.getDate() - daysFilter);
 
-      // Calculate aggregates
-      const sentCampaigns = campaigns.filter(c => c.status === 'sent');
-      const totalRecipients = sentCampaigns.reduce((acc, c) => acc + (c.recipientsCount || 0), 0);
-      const totalOpens = sentCampaigns.reduce((acc, c) => acc + (c.stats?.opens || 0), 0);
-      const totalClicks = sentCampaigns.reduce((acc, c) => acc + (c.stats?.clicks || 0), 0);
-
-      const failures = campaigns.reduce((acc, c) => acc + (c.failedResults?.length || 0), 0);
-
-      // Chart Data (Mocking month distribution based on campaign dates or just last 6 campaigns)
-      // Since we don't have historical month data easily without processing timestamps, 
-      // let's show the last few campaigns' performance
-      const chart = sentCampaigns.slice(0, 7).reverse().map(c => ({
-        name: c.name.substring(0, 10),
-        opens: c.stats?.opens || 0,
-        subscribers: c.recipientsCount || 0
-      }));
-
-      // Helper to safely format date
-      const formatDate = (date: any): string => {
-        if (!date) return 'Data desconhecida';
-        if (typeof date === 'string') return date;
-        if (date?.seconds) {
-          return new Date(date.seconds * 1000).toLocaleString('pt-BR');
-        }
-        return 'Data desconhecida';
-      };
-
-      // Recent Activity
-      const activities = campaigns.slice(0, 5).map(c => {
-        if (c.status === 'sent') return {
-          label: 'Campanha Enviada',
-          time: formatDate(c.sentAt),
-          desc: `${c.name} (${c.recipientsCount} entregues)`,
-          icon: '🚀'
+        const getCampaignDate = (c: Campaign) => {
+          if (c.sentAt) {
+            if (typeof c.sentAt === 'object' && (c.sentAt as any).seconds) return new Date((c.sentAt as any).seconds * 1000);
+            return new Date(c.sentAt);
+          }
+          if (c.createdAt) return new Date(c.createdAt);
+          return new Date(0);
         };
-        if (c.status === 'draft') return {
-          label: 'Rascunho Criado',
-          time: 'Recente',
-          desc: c.name || 'Nova Campanha',
-          icon: '📝'
+
+        const filteredCampaigns = cData.filter(c => {
+          if (daysFilter === 9999) return true; // Show all
+          return getCampaignDate(c) >= filterDate;
+        });
+
+        const sentCampaigns = filteredCampaigns.filter(c => c.status === 'sent');
+        const totalRecipients = sentCampaigns.reduce((acc, c) => acc + (c.recipientsCount || 0), 0);
+        const totalOpens = sentCampaigns.reduce((acc, c) => acc + (c.stats?.opens || 0), 0);
+        const totalClicks = sentCampaigns.reduce((acc, c) => acc + (c.stats?.clicks || 0), 0);
+        const failures = filteredCampaigns.reduce((acc, c) => acc + (c.failedResults?.length || 0), 0);
+
+        // Chart Data (last 7 sent campaigns)
+        const chart = sentCampaigns.slice(0, 7).reverse().map(c => ({
+          name: (c.name || 'Sem nome').substring(0, 10),
+          opens: c.stats?.opens || 0,
+          subscribers: c.recipientsCount || 0
+        }));
+
+        // Helper to safely format date
+        const formatDate = (date: any): string => {
+          if (!date) return 'Data desconhecida';
+          if (typeof date === 'string') return date;
+          if (date?.seconds) {
+            return new Date(date.seconds * 1000).toLocaleString('pt-BR');
+          }
+          return 'Data desconhecida';
         };
-        return null;
-      }).filter(Boolean);
 
-      setStats({
-        totalSubscribers: contacts.length,
-        openRate: totalRecipients > 0 ? (totalOpens / totalRecipients) * 100 : 0,
-        clickRate: totalRecipients > 0 ? (totalClicks / totalRecipients) * 100 : 0,
-        campaignsSent: sentCampaigns.length,
-        totalFailures: failures
-      });
+        // Recent Activity
+        const activities = filteredCampaigns.slice(0, 5).map(c => {
+          if (c.status === 'sent') return {
+            label: 'Campanha Enviada',
+            time: formatDate(c.sentAt),
+            desc: `${c.name || 'Sem nome'} (${c.recipientsCount} entregues)`,
+            icon: '🚀'
+          };
+          if (c.status === 'draft') return {
+            label: 'Rascunho Criado',
+            time: 'Recente',
+            desc: c.name || 'Nova Campanha',
+            icon: '📝'
+          };
+          return null;
+        }).filter(Boolean);
 
-      setChartData(chart);
-      setRecentActivity(activities);
+        setStats({
+          totalSubscribers: conData.length,
+          openRate: totalRecipients > 0 ? (totalOpens / totalRecipients) * 100 : 0,
+          clickRate: totalRecipients > 0 ? (totalClicks / totalRecipients) * 100 : 0,
+          campaignsSent: sentCampaigns.length,
+          totalFailures: failures
+        });
+
+        setChartData(chart);
+        setRecentActivity(activities);
+      } catch (err) {
+        console.error("Erro ao carregar dados do Dashboard:", err);
+        alert("Erro ao carregar dados do Dashboard: " + (err instanceof Error ? err.message : String(err)));
+      }
     };
 
     fetchData();
-  }, []);
+  }, [daysFilter]);
 
   const isDark = theme === 'dark';
   const gridColor = isDark ? '#334155' : '#f1f5f9';
@@ -114,8 +134,18 @@ const Dashboard: React.FC = () => {
           <h1 className="text-4xl font-serif font-bold tracking-wide text-slate-900 dark:text-white">Painel Geral</h1>
           <p className="text-slate-500 dark:text-slate-400">Bem-vindo de volta! Veja o que está acontecendo hoje.</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center space-x-2 text-sm font-medium text-slate-650 dark:text-slate-350">
-          <span>Últimos 30 Dias</span>
+        <div className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center space-x-1.5 text-sm font-medium text-slate-650 dark:text-slate-350 shadow-sm">
+          <select
+            value={daysFilter}
+            onChange={(e) => setDaysFilter(Number(e.target.value))}
+            className="bg-transparent border-none text-slate-700 dark:text-slate-300 font-semibold focus:outline-none cursor-pointer pr-1"
+          >
+            <option value={30}>Últimos 30 Dias</option>
+            <option value={60}>Últimos 60 Dias</option>
+            <option value={90}>Últimos 90 Dias</option>
+            <option value={120}>Últimos 120 Dias</option>
+            <option value={9999}>Todo o Histórico</option>
+          </select>
           <TrendingUp size={16} className="text-brand-500" />
         </div>
       </header>
