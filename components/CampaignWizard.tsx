@@ -4,7 +4,8 @@ import {
   ChevronRight, ChevronLeft, Sparkles, Wand2, Send, Save, Eye, Loader2,
   Info, Upload, CheckCircle2, AlertTriangle, Edit3, Image as ImageIcon,
   Link as LinkIcon, Facebook, Instagram, Linkedin, Twitter, Youtube, Plus, Trash2, Check, ShieldAlert,
-  Laptop, Smartphone, Calendar, AlertCircle, Users, Mail, ArrowUp, ArrowDown, Settings, Video
+  Laptop, Smartphone, Calendar, AlertCircle, Users, Mail, ArrowUp, ArrowDown, Settings, Video,
+  Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered, Eraser, Undo2, Redo2
 } from 'lucide-react';
 import { 
   generateEmailContent, 
@@ -291,6 +292,7 @@ const CampaignWizard: React.FC = () => {
   const [newLinkName, setNewLinkName] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [activeLinkField, setActiveLinkField] = useState<{ sectionId?: string; blockId?: string; field: string } | null>(null);
+  const [savedSelectionRange, setSavedSelectionRange] = useState<Range | null>(null);
 
   const [formData, setFormData] = useState({
     id: id || Math.random().toString(36).substr(2, 9),
@@ -615,6 +617,18 @@ const CampaignWizard: React.FC = () => {
 
   // Open Link Picker
   const handleOpenLinkPicker = (sectionId?: string, blockId?: string, field: string = 'ctaUrl') => {
+    // Save Selection Range for WYSIWYG insertLink operation
+    if (field === 'content') {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        setSavedSelectionRange(sel.getRangeAt(0));
+      } else {
+        setSavedSelectionRange(null);
+      }
+    } else {
+      setSavedSelectionRange(null);
+    }
+
     setActiveLinkField({ sectionId, blockId, field });
     setShowLinkModal(true);
   };
@@ -625,7 +639,61 @@ const CampaignWizard: React.FC = () => {
     
     const { sectionId, blockId, field } = activeLinkField;
     
-    if (sectionId && blockId) {
+    if (field === 'content') {
+      if (sectionId && blockId) {
+        // Visual block rich-text
+        const editorEl = document.getElementById(`editor-${blockId}`);
+        if (editorEl) {
+          const sel = window.getSelection();
+          if (sel && savedSelectionRange) {
+            sel.removeAllRanges();
+            sel.addRange(savedSelectionRange);
+            
+            if (savedSelectionRange.collapsed) {
+              const linkNode = document.createElement('a');
+              linkNode.href = url;
+              linkNode.innerText = url;
+              savedSelectionRange.insertNode(linkNode);
+              savedSelectionRange.setStartAfter(linkNode);
+              savedSelectionRange.setEndAfter(linkNode);
+              sel.removeAllRanges();
+              sel.addRange(savedSelectionRange);
+            } else {
+              document.execCommand('createLink', false, url);
+            }
+          } else {
+            editorEl.innerHTML += ` <a href="${url}">${url}</a>`;
+          }
+          handleUpdateBlock(sectionId, blockId, 'content', editorEl.innerHTML);
+        }
+      } else {
+        // Classic editor rich-text
+        const editorEl = editorRef.current;
+        if (editorEl) {
+          const sel = window.getSelection();
+          if (sel && savedSelectionRange) {
+            sel.removeAllRanges();
+            sel.addRange(savedSelectionRange);
+            
+            if (savedSelectionRange.collapsed) {
+              const linkNode = document.createElement('a');
+              linkNode.href = url;
+              linkNode.innerText = url;
+              savedSelectionRange.insertNode(linkNode);
+              savedSelectionRange.setStartAfter(linkNode);
+              savedSelectionRange.setEndAfter(linkNode);
+              sel.removeAllRanges();
+              sel.addRange(savedSelectionRange);
+            } else {
+              document.execCommand('createLink', false, url);
+            }
+          } else {
+            editorEl.innerHTML += ` <a href="${url}">${url}</a>`;
+          }
+          setFormData(prev => ({ ...prev, content: editorEl.innerHTML }));
+        }
+      }
+    } else if (sectionId && blockId) {
       // It's a block field (like ctaUrl or imageLink)
       handleUpdateBlock(sectionId, blockId, field, url);
     } else {
@@ -635,6 +703,7 @@ const CampaignWizard: React.FC = () => {
     
     setShowLinkModal(false);
     setActiveLinkField(null);
+    setSavedSelectionRange(null);
   };
 
   // Compile Visual Sections to responsive HTML table structure
@@ -740,6 +809,258 @@ const CampaignWizard: React.FC = () => {
     if (editorRef.current) {
       setFormData(prev => ({ ...prev, content: editorRef.current?.innerHTML || '' }));
     }
+  };
+
+  const renderWysiwygToolbar = (onInsertSavedLink?: () => void) => {
+    return (
+      <div className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 p-2 flex gap-1 flex-wrap items-center">
+        {/* Undo/Redo */}
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('undo'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Desfazer"
+        >
+          <Undo2 size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('redo'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Refazer"
+        >
+          <Redo2 size={15} />
+        </button>
+
+        <div className="w-px h-5 bg-slate-300 dark:bg-slate-800 mx-1"></div>
+
+        {/* Text Formats */}
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('bold'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 font-bold transition-colors"
+          title="Negrito"
+        >
+          <Bold size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('italic'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 italic transition-colors"
+          title="Itálico"
+        >
+          <Italic size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('underline'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 underline transition-colors"
+          title="Sublinhado"
+        >
+          <Underline size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('strikeThrough'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Riscado"
+        >
+          <Strikethrough size={15} />
+        </button>
+
+        <div className="w-px h-5 bg-slate-300 dark:bg-slate-800 mx-1"></div>
+
+        {/* Headings Dropdown */}
+        <select
+          onChange={(e) => {
+            const val = e.target.value;
+            handleFormat('formatBlock', val);
+          }}
+          defaultValue="<p>"
+          className="text-xs border border-slate-200 dark:border-slate-850 rounded px-1.5 py-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 outline-none max-w-[100px]"
+          title="Estilo de Bloco"
+        >
+          <option value="<p>">Texto</option>
+          <option value="<h1>">Título 1</option>
+          <option value="<h2>">Título 2</option>
+          <option value="<h3>">Título 3</option>
+        </select>
+
+        {/* Font Family */}
+        <select
+          onChange={(e) => handleFormat('fontName', e.target.value)}
+          defaultValue="Arial"
+          className="text-xs border border-slate-200 dark:border-slate-850 rounded px-1.5 py-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 outline-none max-w-[100px]"
+          title="Fonte"
+        >
+          <option value="Arial">Arial</option>
+          <option value="Courier New">Courier</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times</option>
+          <option value="Verdana">Verdana</option>
+          <option value="Cormorant Garamond">Cormorant</option>
+          <option value="DM Sans">DM Sans</option>
+        </select>
+
+        {/* Font Size */}
+        <select
+          onChange={(e) => handleFormat('fontSize', e.target.value)}
+          defaultValue="3"
+          className="text-xs border border-slate-200 dark:border-slate-850 rounded px-1.5 py-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 outline-none"
+          title="Tamanho da Fonte"
+        >
+          <option value="1">Muito P</option>
+          <option value="2">Pequeno</option>
+          <option value="3">Normal</option>
+          <option value="4">Médio</option>
+          <option value="5">Grande</option>
+          <option value="6">Muito G</option>
+          <option value="7">Gigante</option>
+        </select>
+
+        <div className="w-px h-5 bg-slate-300 dark:bg-slate-800 mx-1"></div>
+
+        {/* Text Alignment */}
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('justifyLeft'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Alinhar à Esquerda"
+        >
+          <AlignLeft size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('justifyCenter'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Centralizar"
+        >
+          <AlignCenter size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('justifyRight'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Alinhar à Direita"
+        >
+          <AlignRight size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('justifyFull'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Justificar"
+        >
+          <AlignJustify size={15} />
+        </button>
+
+        <div className="w-px h-5 bg-slate-300 dark:bg-slate-800 mx-1"></div>
+
+        {/* Lists */}
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('insertUnorderedList'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Lista de Marcadores"
+        >
+          <List size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('insertOrderedList'); }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Lista Numerada"
+        >
+          <ListOrdered size={15} />
+        </button>
+
+        <div className="w-px h-5 bg-slate-300 dark:bg-slate-800 mx-1"></div>
+
+        {/* Branding Colors Palette Dropdown */}
+        <div className="relative group/color">
+          <button
+            type="button"
+            className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 flex items-center gap-1 text-[11px] font-bold"
+            title="Cor do Texto"
+          >
+            <span className="w-3.5 h-3.5 rounded-full border border-slate-350 bg-slate-800 dark:bg-slate-100 block"></span>
+            Cor
+          </button>
+          <div className="absolute left-0 top-full mt-1 hidden group-hover/color:flex flex-col bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-xl p-2 shadow-xl z-10 gap-1.5 min-w-[130px]">
+            <span className="text-[9px] font-bold text-slate-400 uppercase px-1">Cor do Texto</span>
+            <div className="grid grid-cols-5 gap-1">
+              {['#0C1824', '#A87828', '#17130E', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#6B7280', '#000000'].map(color => (
+                <button
+                  key={color}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleFormat('foreColor', color);
+                  }}
+                  className="w-5 h-5 rounded border border-slate-200 dark:border-slate-800"
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleFormat('foreColor', '#17130E');
+              }}
+              className="w-full py-1 text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-750 dark:text-slate-300 font-semibold rounded"
+            >
+              Cor Padrão
+            </button>
+          </div>
+        </div>
+
+        {/* Custom URL Link */}
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            const url = prompt("Digite o endereço do Link (URL):", "https://");
+            if (url) {
+              handleFormat('createLink', url);
+            }
+          }}
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 transition-colors"
+          title="Inserir Link Externo"
+        >
+          <LinkIcon size={15} />
+        </button>
+
+        {/* Saved Link Selector */}
+        {onInsertSavedLink && (
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onInsertSavedLink();
+            }}
+            className="flex items-center space-x-1 px-2.5 py-1 bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 border border-brand-100 dark:border-brand-900/40 rounded-lg text-[10px] font-bold text-brand-700 dark:text-brand-400 transition-colors"
+            title="Inserir Link Salvo do Banco"
+          >
+            <LinkIcon size={11} />
+            <span>Link Salvo</span>
+          </button>
+        )}
+
+        <div className="w-px h-5 bg-slate-300 dark:bg-slate-800 mx-1"></div>
+
+        {/* Clear formatting */}
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleFormat('removeFormat'); }}
+          className="p-1.5 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 dark:hover:text-rose-400 rounded text-slate-500 transition-colors"
+          title="Limpar Formatação"
+        >
+          <Eraser size={15} />
+        </button>
+      </div>
+    );
   };
 
   const [suggestedSubjects, setSuggestedSubjects] = useState<string[]>([]);
@@ -1399,19 +1720,7 @@ const CampaignWizard: React.FC = () => {
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mensagem (Corpo do E-mail)</label>
                         <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 bg-white dark:bg-slate-900">
-                          <div className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 p-2 flex gap-1 flex-wrap items-center">
-                            <button type="button" onClick={() => handleFormat('bold')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 font-bold" title="Negrito">B</button>
-                            <button type="button" onClick={() => handleFormat('italic')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 italic" title="Itálico">I</button>
-                            <button type="button" onClick={() => handleFormat('underline')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 underline" title="Sublinhado">U</button>
-                            <div className="w-px h-4 bg-slate-300 dark:bg-slate-750 mx-1"></div>
-                            <select onChange={(e) => handleFormat('fontName', e.target.value)} className="text-xs border border-slate-200 dark:border-slate-800 rounded p-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
-                              <option value="Arial">Arial</option>
-                              <option value="Courier New">Courier</option>
-                              <option value="Georgia">Georgia</option>
-                              <option value="Times New Roman">Times</option>
-                              <option value="Verdana">Verdana</option>
-                            </select>
-                          </div>
+                          {renderWysiwygToolbar()}
                           <div
                             ref={editorRef}
                             contentEditable
@@ -1761,22 +2070,9 @@ const CampaignWizard: React.FC = () => {
                                   {/* Block input fields */}
                                   {block.type === 'text' && (
                                     <div className="space-y-2">
-                                      {/* Formatting buttons */}
-                                      <div className="bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-1.5 rounded-lg flex gap-1 flex-wrap items-center">
-                                        <button type="button" onClick={() => handleFormat('bold')} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 text-xs font-bold" title="Negrito">B</button>
-                                        <button type="button" onClick={() => handleFormat('italic')} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 text-xs italic" title="Itálico">I</button>
-                                        <button type="button" onClick={() => handleFormat('underline')} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300 text-xs underline" title="Sublinhado">U</button>
-                                        <div className="w-px h-4 bg-slate-300 dark:bg-slate-750 mx-1"></div>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleOpenLinkPicker(section.id, block.id, 'content')}
-                                          className="flex items-center space-x-1 px-2 py-0.5 border dark:border-slate-800 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-[10px] font-bold text-slate-600"
-                                        >
-                                          <LinkIcon size={10} />
-                                          <span>Inserir Link Salvo</span>
-                                        </button>
-                                      </div>
+                                      {renderWysiwygToolbar(() => handleOpenLinkPicker(section.id, block.id, 'content'))}
                                       <div
+                                        id={`editor-${block.id}`}
                                         contentEditable
                                         suppressContentEditableWarning
                                         className="w-full p-3 min-h-[120px] bg-slate-50/50 dark:bg-slate-900/50 border dark:border-slate-800 rounded-lg outline-none prose prose-sm max-w-none dark:prose-invert text-xs"
